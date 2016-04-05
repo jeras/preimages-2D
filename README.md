@@ -1,0 +1,1 @@
+preimages2d STATES NEIGHBORHOOD_X NEIGHBORHOOD_Y RULE SIZE_X SIZE_Y ca_state_filename.cas 
