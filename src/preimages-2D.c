@@ -34,8 +34,7 @@
 // math libraries
 #include <stdint.h>
 #include <math.h>
-
-//#include <gmp.h>
+#include <gmp.h>
 
 #define uintca_t uint64_t
 
@@ -44,40 +43,80 @@ int main (int argc, char **argv) {
     int unsigned sts;
     int unsigned ngb_x;
     int unsigned ngb_y;
-    int unsigned rule;
+    mpz_t        rule;
     int unsigned siz_x;
     int unsigned siz_y;
     char *filename;
     FILE  file;
 
-    if(argc < 8) {
-       fprintf(stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
+    // read input arguments
+    if (argc < 8) {
+       fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
        return (1);
     }
-    sts   = strtoul(argv[1], 0, 0);
-    ngb_x = strtoul(argv[2], 0, 0);
-    ngb_y = strtoul(argv[3], 0, 0);
-    rule  = strtoul(argv[4], 0, 0);
-    siz_x = strtoul(argv[5], 0, 0);
-    siz_y = strtoul(argv[6], 0, 0);
+    sts   = strtoul (argv[1], 0, 0);
+    ngb_x = strtoul (argv[2], 0, 0);
+    ngb_y = strtoul (argv[3], 0, 0);
+    mpz_init_set_str (rule, argv[4], 0);
+    siz_x = strtoul (argv[5], 0, 0);
+    siz_y = strtoul (argv[6], 0, 0);
     filename = argv[7];
 
+    // printout call arguments for debugging purposes
+    printf     ("STATES              = %i\n", sts  );
+    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ngb_x);
+    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ngb_y);
+    gmp_printf ("RULE                = %Zi\n", rule);
+    printf     ("CA_SIZE_X           = %i\n", siz_x);
+    printf     ("CA_SIZE_Y           = %i\n", siz_y);
+    printf     ("filename            = %s\n", filename);
+
+    // neighborhood area
+    int unsigned ngb_a = ngb_x * ngb_y;
+    printf     ("ngb_a           = %i\n", ngb_a);
+    // check if it is within allowed values, for example (ngb_a < 9==3*3)
+
+
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (sts, ngb_a);
+ //   printf     ("ngb_n           = %lld\n", ngb_n);
+
+    // check if rule is within range = sts ** (sts ** ngb_n)
+    mpz_t range;
+    mpz_init (range);
+    mpz_ui_pow_ui (range, sts, ngb_n);
+    gmp_printf ("range                = %Zi\n", range);
+    if (mpz_cmp (rule, range) > 0) {
+        gmp_printf ("ERROR: rule is outside of range\n");
+       return (1);
+    }
+
+    // rule table
+    uintca_t tab_r [ngb_n];
+    for (int unsigned i = 0; i<ngb_n; i++) {
+    }
+    
     // overlap size
     int unsigned ovl_x = ngb_x - 1;
     int unsigned ovl_y = ngb_y - 1;
-    int unsigned ovl_n = pow (sts, ovl_y * ovl_x);
+    uintca_t ovl_n = pow (sts, ovl_y * ovl_x);
 
-    // memory allocation for rule de Bruijn matrices
-    
 
     // neighborhood table
 
     // overlap transition matrix
-    uintca_t tab_o [2] [2] [ovl_n] [ovl_n];
+    // [0-x, 1-y] 
+    uintca_t tab_o [2] [2] [ovl_n];
 
     // memory allocation for preimage network
     uintca_t net [siz_y] [siz_x] [ovl_n];
 
+    for (int unsigned y=0; y<=siz_y; y++) {
+        for (int unsigned x=0; x<=siz_x; x++) {
+        }
+    }
+
     return (0);
 }
+
 
