@@ -36,7 +36,7 @@
 #include <math.h>
 #include <gmp.h>
 
-#define uintca_t uint64_t
+#define uintca_t long long int unsigned
 
 int main (int argc, char **argv) {
     // configuration
@@ -73,27 +73,38 @@ int main (int argc, char **argv) {
 
     // neighborhood area
     int unsigned ngb_a = ngb_x * ngb_y;
-    printf     ("ngb_a           = %i\n", ngb_a);
+    printf     ("ngb_a               = %i\n", ngb_a);
     // check if it is within allowed values, for example (ngb_a < 9==3*3)
-
+    if ((ngb_a == 0) || (ngb_a >= 9)) {
+        fprintf (stderr, "ERROR: neighborhood area (ngb_a = %u) is outside range [1:9].\n", ngb_a);
+        return (1);
+    }
 
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (sts, ngb_a);
- //   printf     ("ngb_n           = %lld\n", ngb_n);
+    printf     ("ngb_n               = %lld\n", ngb_n);
 
     // check if rule is within range = sts ** (sts ** ngb_n)
     mpz_t range;
     mpz_init (range);
     mpz_ui_pow_ui (range, sts, ngb_n);
-    gmp_printf ("range                = %Zi\n", range);
+    gmp_printf ("range               = %Zi\n", range);
     if (mpz_cmp (rule, range) > 0) {
-        gmp_printf ("ERROR: rule is outside of range\n");
-       return (1);
+        fprintf (stderr, "ERROR: rule is outside of range\n");
+        return (1);
     }
 
-    // rule table
+    // rule table (conversion to base sts)
     uintca_t tab_r [ngb_n];
-    for (int unsigned i = 0; i<ngb_n; i++) {
+    mpz_t rule_q, rule_r;
+    mpz_init_set (rule_q, rule);
+    mpz_init (rule_r);
+    for (int unsigned i=0; i<ngb_n; i++) {
+        mpz_t tmp;
+        mpz_init (tmp);
+        tab_r [i] = mpz_tdiv_q_ui (tmp, rule_q, sts);
+        mpz_init_set (rule_q, tmp);
+        printf     ("tab_r [%4i]        = %lld\n", i, tab_r [i]);
     }
     
     // overlap size
