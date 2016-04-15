@@ -38,14 +38,49 @@
 
 #define uintca_t long long int unsigned
 
+typedef struct {
+    int unsigned x;
+    int unsigned y;
+    int unsigned a;
+    int unsigned n;
+} ca_size_t;
+
+int unsigned array2number (int unsigned base, int unsigned len, int unsigned array[len], int unsigned *number) {
+    *number = 0;
+    for (int unsigned i=0; i<len; i++) {
+        *number *= base;
+        *number += array[i];
+    }
+    return 0;
+}
+
+int unsigned number2array (int unsigned base, int unsigned len, int unsigned array[len], int unsigned number) {
+    for (int unsigned i=0; i<len; i++) {
+        array[i] = number % base;
+        number /= base;
+    }
+    return 0;
+}
+
+int unsigned array_slice (
+    int unsigned ix, int unsigned iy,
+    int unsigned ox0, int unsigned ox1, int unsigned oy0, int unsigned oy1,
+    int unsigned ia[iy][ix], int unsigned oa[oy1-oy0][ox1-ox0])
+{
+    for (int unsigned y=0; y<oy1-oy0; y++) {
+        for (int unsigned x=0; x<ox1-ox0; x++) {
+            oa[y][x] = ia[oy0+y][ox0+x];
+        }
+    }
+    return 0;
+}
+
 int main (int argc, char **argv) {
     // configuration
     int unsigned sts;
-    int unsigned ngb_x;
-    int unsigned ngb_y;
+    ca_size_t    ngb;
     mpz_t        rule;
-    int unsigned siz_x;
-    int unsigned siz_y;
+    ca_size_t    siz;
     char *filename;
     FILE  file;
 
@@ -55,33 +90,33 @@ int main (int argc, char **argv) {
        return (1);
     }
     sts   = strtoul (argv[1], 0, 0);
-    ngb_x = strtoul (argv[2], 0, 0);
-    ngb_y = strtoul (argv[3], 0, 0);
+    ngb.x = strtoul (argv[2], 0, 0);
+    ngb.y = strtoul (argv[3], 0, 0);
     mpz_init_set_str (rule, argv[4], 0);
-    siz_x = strtoul (argv[5], 0, 0);
-    siz_y = strtoul (argv[6], 0, 0);
+    siz.x = strtoul (argv[5], 0, 0);
+    siz.y = strtoul (argv[6], 0, 0);
     filename = argv[7];
 
     // printout call arguments for debugging purposes
     printf     ("STATES              = %i\n", sts  );
-    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ngb_x);
-    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ngb_y);
+    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ngb.x);
+    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ngb.y);
     gmp_printf ("RULE                = %Zi\n", rule);
-    printf     ("CA_SIZE_X           = %i\n", siz_x);
-    printf     ("CA_SIZE_Y           = %i\n", siz_y);
+    printf     ("CA_SIZE_X           = %i\n", siz.x);
+    printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
 
     // neighborhood area
-    int unsigned ngb_a = ngb_x * ngb_y;
-    printf     ("ngb_a               = %i\n", ngb_a);
-    // check if it is within allowed values, for example (ngb_a < 9==3*3)
-    if ((ngb_a == 0) || (ngb_a >= 9)) {
-        fprintf (stderr, "ERROR: neighborhood area (ngb_a = %u) is outside range [1:9].\n", ngb_a);
+    ngb.a = ngb.x * ngb.y;
+    printf     ("ngb.a               = %i\n", ngb.a);
+    // check if it is within allowed values, for example (ngb.a < 9==3*3)
+    if ((ngb.a == 0) || (ngb.a >= 9)) {
+        fprintf (stderr, "ERROR: neighborhood area (ngb.a = %u) is outside range [1:9].\n", ngb.a);
         return (1);
     }
 
     // neighborhood states (sts ** ngb_n)
-    uintca_t ngb_n = pow (sts, ngb_a);
+    uintca_t ngb_n = pow (sts, ngb.a);
     printf     ("ngb_n               = %lld\n", ngb_n);
 
     // check if rule is within range = sts ** (sts ** ngb_n)
@@ -94,40 +129,47 @@ int main (int argc, char **argv) {
         return (1);
     }
 
+    typedef struct {
+        int unsigned w;
+        int unsigned x [2]; // left/right edge index
+        int unsigned y [2]; // bottom/top edge index
+    } map_t;
+
     // rule table (conversion to base sts)
-    uintca_t tab_r [ngb_n];
+    map_t tab_r [ngb_n];
     mpz_t rule_q, rule_r;
     mpz_init_set (rule_q, rule);
     mpz_init (rule_r);
     for (int unsigned i=0; i<ngb_n; i++) {
+        // populate weight
         mpz_t tmp;
         mpz_init (tmp);
-        tab_r [i] = mpz_tdiv_q_ui (tmp, rule_q, sts);
+        tab_r[i].w = mpz_tdiv_q_ui (tmp, rule_q, sts);
         mpz_init_set (rule_q, tmp);
-        printf     ("tab_r [%4i]        = %lld\n", i, tab_r [i]);
+        // populate X overlap pointer table
+        int unsigned a [ngb.y] [ngb.x];
+        number2array (sts, ngb.a, (unsigned int *) a, i);
+        for (int unsigned j=0; j<2; j++) {
+             int unsigned o [ngb.y-1] [ngb.x];
+             array_slice (ngb.x, ngb.y, 0, ngb.x, j, ngb.y+j-1, a, o);
+             array2number (sts, (ngb.y-1)*ngb.x, (unsigned int *) o, &(tab_r[i].y[j]));
+        }
+        for (int unsigned j=0; j<2; j++) {
+             int unsigned o [ngb.y] [ngb.x-1];
+             array_slice (ngb.x, ngb.y, j, ngb.x+j-1, 0, ngb.y, a, o);
+             array2number (sts, ngb.y*(ngb.x-1), (int unsigned *) o, &(tab_r[i].x[j]));
+        }
+        printf     ("tab_r[%4i].w       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab_r[i].w, tab_r[i].x[0], tab_r[i].x[1], tab_r[i].y[0], tab_r[i].y[1]);
     }
     
-    // overlap size
-    int unsigned ovl_x = ngb_x - 1;
-    int unsigned ovl_y = ngb_y - 1;
-    uintca_t ovl_n = pow (sts, ovl_y * ovl_x);
-
-
-    // neighborhood table
-
-    // overlap transition matrix
-    // [0-x, 1-y] 
-    uintca_t tab_o [2] [2] [ovl_n];
-
     // memory allocation for preimage network
-    uintca_t net [siz_y] [siz_x] [ovl_n];
+    uintca_t net [siz.y] [siz.x] [ngb_n];
 
-    for (int unsigned y=0; y<=siz_y; y++) {
-        for (int unsigned x=0; x<=siz_x; x++) {
+    for (int unsigned y=0; y<=siz.y; y++) {
+        for (int unsigned x=0; x<=siz.x; x++) {
         }
     }
 
     return (0);
 }
-
 
