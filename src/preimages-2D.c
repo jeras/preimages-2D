@@ -42,7 +42,7 @@ typedef struct {
     int unsigned x;
     int unsigned y;
     int unsigned a;
-    int unsigned n;
+//    int unsigned n;
 } ca_size_t;
 
 int unsigned array2number (int unsigned base, int unsigned len, int unsigned array[len], int unsigned *number) {
@@ -221,12 +221,13 @@ int main (int argc, char **argv) {
     uintca_t mul;
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
-             for (int unsigned i=0; i<ngb.n; i++) {
+             for (int unsigned i=0; i<ngb_n; i++) {
                   if (tab [i].w == ca [y] [x]) {
                       mul = net_x [y] [x] [tab [i].x [0]]
                           * net_y [y] [x] [tab [i].y [0]];
                       net_x [y  ] [x+1] [tab [i].x [1]] += mul;
                       net_y [y+1] [x  ] [tab [i].y [1]] += mul;
+//                      printf ("x=%u y=%u i=%u tab[i].x[1]=%u tab[i].y[1]=%u\n", x, y, i, tab [i].x [1], tab [i].y [1]);
                   }
              }
         }
