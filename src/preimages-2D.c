@@ -136,7 +136,7 @@ int main (int argc, char **argv) {
     } map_t;
 
     // rule table (conversion to base sts)
-    map_t tab_r [ngb_n];
+    map_t tab [ngb_n];
     mpz_t rule_q, rule_r;
     mpz_init_set (rule_q, rule);
     mpz_init (rule_r);
@@ -144,7 +144,7 @@ int main (int argc, char **argv) {
         // populate weight
         mpz_t tmp;
         mpz_init (tmp);
-        tab_r[i].w = mpz_tdiv_q_ui (tmp, rule_q, sts);
+        tab[i].w = mpz_tdiv_q_ui (tmp, rule_q, sts);
         mpz_init_set (rule_q, tmp);
         // populate X overlap pointer table
         int unsigned a [ngb.y] [ngb.x];
@@ -152,23 +152,66 @@ int main (int argc, char **argv) {
         for (int unsigned j=0; j<2; j++) {
              int unsigned o [ngb.y-1] [ngb.x];
              array_slice (ngb.x, ngb.y, 0, ngb.x, j, ngb.y+j-1, a, o);
-             array2number (sts, (ngb.y-1)*ngb.x, (unsigned int *) o, &(tab_r[i].y[j]));
+             array2number (sts, (ngb.y-1)*ngb.x, (unsigned int *) o, &(tab[i].y[j]));
         }
         for (int unsigned j=0; j<2; j++) {
              int unsigned o [ngb.y] [ngb.x-1];
              array_slice (ngb.x, ngb.y, j, ngb.x+j-1, 0, ngb.y, a, o);
-             array2number (sts, ngb.y*(ngb.x-1), (int unsigned *) o, &(tab_r[i].x[j]));
+             array2number (sts, ngb.y*(ngb.x-1), (int unsigned *) o, &(tab[i].x[j]));
         }
-        printf     ("tab_r[%4i].w       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab_r[i].w, tab_r[i].x[0], tab_r[i].x[1], tab_r[i].y[0], tab_r[i].y[1]);
+        printf     ("tab[%4i].w       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab[i].w, tab[i].x[0], tab[i].x[1], tab[i].y[0], tab[i].y[1]);
     }
     
-    // memory allocation for preimage network
-    uintca_t net [siz.y] [siz.x] [ngb_n];
+    // overlap states (sts ** ovl_n)
+    uintca_t ovl_x = pow (sts, ngb.a - ngb.y);
+    uintca_t ovl_y = pow (sts, ngb.a - ngb.x);
+    printf     ("ovl_x               = %lld\n", ovl_x);
+    printf     ("ovl_y               = %lld\n", ovl_y);
 
-    for (int unsigned y=0; y<=siz.y; y++) {
+    // read CA configuration file
+    int unsigned ca [siz.y] [siz.x];
+
+    // memory allocation for preimage network
+    uintca_t net_x [siz.y  ] [siz.x+1] [ovl_x];
+    uintca_t net_y [siz.y+1] [siz.x  ] [ovl_y];
+
+    // initialize array x
+    for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
+             for (int unsigned i=0; i<ovl_x; i++) {
+                 // TODO: for now only a unit weight edge is supportedunsigned int *
+                 if (!x)  net_x [y] [x] [i] = 1;
+                 else     net_x [y] [x] [i] = 0;
+             }
         }
     }
+
+    // initialize array y
+    for (int unsigned y=0; y<=siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+             for (int unsigned i=0; i<ovl_y; i++) {
+                 // TODO: for now only a unit weight edge is supportedunsigned int *
+                 if (!y)  net_y [y] [x] [i] = 1;
+                 else     net_y [y] [x] [i] = 0;
+             }
+        }
+    }
+
+    // compute network weights
+    uintca_t mul;
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+             for (int unsigned i=0; i<ngb.n; i++) {
+                  if (tab [i].w == ca [y] [x]) {
+                      mul = net_x [y] [x] [tab [i].x [0]]
+                          * net_y [y] [x] [tab [i].y [0]];
+                      net_x [y  ] [x+1] [tab [i].x [1]] += mul;
+                      net_y [y+1] [x  ] [tab [i].y [1]] += mul;
+                  }
+             }
+        }
+    }
+
 
     return (0);
 }
