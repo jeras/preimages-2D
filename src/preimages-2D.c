@@ -170,6 +170,26 @@ int main (int argc, char **argv) {
 
     // read CA configuration file
     int unsigned ca [siz.y] [siz.x];
+    FILE *fp;
+    fp = fopen (filename, "r");
+    if (!fp) {
+        fprintf (stderr, "ERROR: file %s not found\n", filename);
+        return (1);
+    }
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+             fscanf (fp, "%u", &ca [y] [x]);
+        }
+    }
+    fclose (fp);
+    // printout CA state
+    for (int unsigned y=0; y<siz.y; y++) {
+        printf ("CA [y=%u]:", y);
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf (" %u", ca [y] [x]);
+        }
+        printf ("\n");
+    }
 
     // memory allocation for preimage network
     uintca_t net_x [siz.y  ] [siz.x+1] [ovl_x];
