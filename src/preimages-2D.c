@@ -221,19 +221,42 @@ int main (int argc, char **argv) {
     uintca_t mul;
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
-             for (int unsigned i=0; i<ngb_n; i++) {
-                  if (tab [i].w == ca [y] [x]) {
-                      mul = net_x [y] [x] [tab [i].x [0]]
-                          * net_y [y] [x] [tab [i].y [0]];
-                      net_x [y  ] [x+1] [tab [i].x [1]] += mul;
-                      net_y [y+1] [x  ] [tab [i].y [1]] += mul;
-//                      printf ("x=%u y=%u i=%u tab[i].x[1]=%u tab[i].y[1]=%u\n", x, y, i, tab [i].x [1], tab [i].y [1]);
-                  }
-             }
+            for (int unsigned i=0; i<ngb_n; i++) {
+                if (tab [i].w == ca [y] [x]) {
+                    mul = net_x [y] [x] [tab [i].x [0]]
+                        * net_y [y] [x] [tab [i].y [0]];
+                    net_x [y  ] [x+1] [tab [i].x [1]] += mul;
+                    net_y [y+1] [x  ] [tab [i].y [1]] += mul;
+//                    printf ("x=%u y=%u i=%u tab[i].x[1]=%u tab[i].y[1]=%u\n", x, y, i, tab [i].x [1], tab [i].y [1]);
+                }
+            }
         }
     }
 
-
+    // printout preimage network weights
+    printf ("network X\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf (" [");
+            for (int unsigned i=0; i<ovl_x; i++) {
+                printf ("%s%lld", i ? " " : "", net_x [y] [x] [i]);
+            }
+            printf ("]");
+        }
+        printf ("\n");
+    }
+    printf ("network Y\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf (" [");
+            for (int unsigned i=0; i<ovl_y; i++) {
+                printf ("%s%lld", i ? " " : "", net_y [y] [x] [i]);
+            }
+            printf ("]");
+        }
+        printf ("\n");
+    }
+    
     return (0);
 }
 
