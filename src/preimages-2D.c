@@ -236,7 +236,7 @@ int main (int argc, char **argv) {
     // printout preimage network weights
     printf ("network X\n");
     for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
+        for (int unsigned x=0; x<=siz.x; x++) {
             printf (" [");
             for (int unsigned i=0; i<ovl_x; i++) {
                 printf ("%s%lld", i ? " " : "", net_x [y] [x] [i]);
@@ -246,7 +246,7 @@ int main (int argc, char **argv) {
         printf ("\n");
     }
     printf ("network Y\n");
-    for (int unsigned y=0; y<siz.y; y++) {
+    for (int unsigned y=0; y<=siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
             printf (" [");
             for (int unsigned i=0; i<ovl_y; i++) {
