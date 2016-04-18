@@ -75,6 +75,33 @@ int unsigned array_slice (
     return 0;
 }
 
+// function for transforming the Game of Life rule description into a number
+int gol_rule () {
+    int unsigned len = 1<<9;
+    mpz_t rule;
+    mpz_init_set_ui (rule, 0);
+    // loop through the rule table
+    for (int unsigned i=0; i<len; i++) {
+        // calculate neighborhood sum
+        int unsigned sum = 0;
+        for (int unsigned b=0; b<9; b++) {
+            sum += (i >> b) & 0x1;
+        }
+        // calculate GoL transition function
+        int unsigned out;
+        if      (sum == 3)  out = 1;
+        else if (sum == 2)  out = (i >> 4) % 0x1;
+        else                out = 0;
+        // add rule table element to rule number
+        mpz_mul_ui (rule, rule, 2);
+        mpz_add_ui (rule, rule, out);
+    }
+    // return rule
+    gmp_printf ("RULE GoL             = %Zi\n", rule);
+    return (0);
+}
+
+
 int main (int argc, char **argv) {
     // configuration
     int unsigned sts;
@@ -86,8 +113,8 @@ int main (int argc, char **argv) {
 
     // read input arguments
     if (argc < 8) {
-       fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
-       return (1);
+        fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
+        return (1);
     }
     sts   = strtoul (argv[1], 0, 0);
     ngb.x = strtoul (argv[2], 0, 0);
@@ -128,6 +155,7 @@ int main (int argc, char **argv) {
         fprintf (stderr, "ERROR: rule is outside of range\n");
         return (1);
     }
+    mpz_clear (range);
 
     typedef struct {
         int unsigned w;
@@ -161,6 +189,8 @@ int main (int argc, char **argv) {
         }
         printf     ("tab[%4i].w       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab[i].w, tab[i].x[0], tab[i].x[1], tab[i].y[0], tab[i].y[1]);
     }
+    mpz_clear (rule_q);
+    mpz_clear (rule_r);
     
     // overlap states (sts ** ovl_n)
     uintca_t ovl_x = pow (sts, ngb.a - ngb.y);
@@ -227,7 +257,6 @@ int main (int argc, char **argv) {
                         * net_y [y] [x] [tab [i].y [0]];
                     net_x [y  ] [x+1] [tab [i].x [1]] += mul;
                     net_y [y+1] [x  ] [tab [i].y [1]] += mul;
-//                    printf ("x=%u y=%u i=%u tab[i].x[1]=%u tab[i].y[1]=%u\n", x, y, i, tab [i].x [1], tab [i].y [1]);
                 }
             }
         }
@@ -256,7 +285,9 @@ int main (int argc, char **argv) {
         }
         printf ("\n");
     }
-    
+
+    // remove unused code
+    gol_rule ();
     return (0);
 }
 
