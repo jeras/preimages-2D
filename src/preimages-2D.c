@@ -158,7 +158,7 @@ int main (int argc, char **argv) {
     mpz_clear (range);
 
     typedef struct {
-        int unsigned w;
+        int unsigned o;     // output value
         int unsigned x [2]; // left/right edge index
         int unsigned y [2]; // bottom/top edge index
     } map_t;
@@ -169,10 +169,10 @@ int main (int argc, char **argv) {
     mpz_init_set (rule_q, rule);
     mpz_init (rule_r);
     for (int unsigned i=0; i<ngb_n; i++) {
-        // populate weight
+        // populate transition function
         mpz_t tmp;
         mpz_init (tmp);
-        tab[i].w = mpz_tdiv_q_ui (tmp, rule_q, sts);
+        tab[i].o = mpz_tdiv_q_ui (tmp, rule_q, sts);
         mpz_init_set (rule_q, tmp);
         // populate X overlap pointer table
         int unsigned a [ngb.y] [ngb.x];
@@ -187,7 +187,7 @@ int main (int argc, char **argv) {
              array_slice (ngb.x, ngb.y, j, ngb.x+j-1, 0, ngb.y, a, o);
              array2number (sts, ngb.y*(ngb.x-1), (int unsigned *) o, &(tab[i].x[j]));
         }
-        printf     ("tab[%4i].w       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab[i].w, tab[i].x[0], tab[i].x[1], tab[i].y[0], tab[i].y[1]);
+        printf     ("tab[%4i].o       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab[i].o, tab[i].x[0], tab[i].x[1], tab[i].y[0], tab[i].y[1]);
     }
     mpz_clear (rule_q);
     mpz_clear (rule_r);
@@ -222,16 +222,15 @@ int main (int argc, char **argv) {
     }
 
     // memory allocation for preimage network
-    uintca_t net_x [siz.y  ] [siz.x+1] [ovl_x];
-    uintca_t net_y [siz.y+1] [siz.x  ] [ovl_y];
+    mpz_t net_x [siz.y  ] [siz.x+1] [ovl_x];
+    mpz_t net_y [siz.y+1] [siz.x  ] [ovl_y];
 
     // initialize array x
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
              for (int unsigned i=0; i<ovl_x; i++) {
                  // TODO: for now only a unit weight edge is supportedunsigned int *
-                 if (!x)  net_x [y] [x] [i] = 1;
-                 else     net_x [y] [x] [i] = 0;
+                 mpz_init_set_ui (net_x [y] [x] [i], !x ? 1 : 0);
              }
         }
     }
@@ -241,22 +240,22 @@ int main (int argc, char **argv) {
         for (int unsigned x=0; x<siz.x; x++) {
              for (int unsigned i=0; i<ovl_y; i++) {
                  // TODO: for now only a unit weight edge is supportedunsigned int *
-                 if (!y)  net_y [y] [x] [i] = 1;
-                 else     net_y [y] [x] [i] = 0;
+                 mpz_init_set_ui (net_y [y] [x] [i], !y ? 1 : 0);
              }
         }
     }
 
     // compute network weights
-    uintca_t mul;
+    mpz_t mul;
+    mpz_init (mul);
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
             for (int unsigned i=0; i<ngb_n; i++) {
-                if (tab [i].w == ca [y] [x]) {
-                    mul = net_x [y] [x] [tab [i].x [0]]
-                        * net_y [y] [x] [tab [i].y [0]];
-                    net_x [y  ] [x+1] [tab [i].x [1]] += mul;
-                    net_y [y+1] [x  ] [tab [i].y [1]] += mul;
+                if (tab [i].o == ca [y] [x]) {
+                    mpz_mul (mul, net_x [y] [x] [tab [i].x [0]]
+                                , net_y [y] [x] [tab [i].y [0]]);
+                    mpz_add (net_x [y  ] [x+1] [tab [i].x [1]], net_x [y  ] [x+1] [tab [i].x [1]], mul);
+                    mpz_add (net_y [y+1] [x  ] [tab [i].y [1]], net_y [y+1] [x  ] [tab [i].y [1]], mul);
                 }
             }
         }
@@ -268,7 +267,7 @@ int main (int argc, char **argv) {
         for (int unsigned x=0; x<=siz.x; x++) {
             printf (" [");
             for (int unsigned i=0; i<ovl_x; i++) {
-                printf ("%s%lld", i ? " " : "", net_x [y] [x] [i]);
+                gmp_printf ("%s%Zi", i ? " " : "", net_x [y] [x] [i]);
             }
             printf ("]");
         }
@@ -279,7 +278,7 @@ int main (int argc, char **argv) {
         for (int unsigned x=0; x<siz.x; x++) {
             printf (" [");
             for (int unsigned i=0; i<ovl_y; i++) {
-                printf ("%s%lld", i ? " " : "", net_y [y] [x] [i]);
+                gmp_printf ("%s%Zi", i ? " " : "", net_y [y] [x] [i]);
             }
             printf ("]");
         }
