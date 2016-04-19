@@ -254,8 +254,12 @@ int main (int argc, char **argv) {
                 if (tab [i].o == ca [y] [x]) {
                     mpz_mul (mul, net_x [y] [x] [tab [i].x [0]]
                                 , net_y [y] [x] [tab [i].y [0]]);
-                    mpz_add (net_x [y  ] [x+1] [tab [i].x [1]], net_x [y  ] [x+1] [tab [i].x [1]], mul);
-                    mpz_add (net_y [y+1] [x  ] [tab [i].y [1]], net_y [y+1] [x  ] [tab [i].y [1]], mul);
+                    mpz_t tmp_x;
+                    mpz_t tmp_y;
+                    mpz_init_set (tmp_x, net_x [y  ] [x+1] [tab [i].x [1]]);
+                    mpz_init_set (tmp_y, net_y [y+1] [x  ] [tab [i].y [1]]);
+                    mpz_add (net_x [y  ] [x+1] [tab [i].x [1]], tmp_x, mul);
+                    mpz_add (net_y [y+1] [x  ] [tab [i].y [1]], tmp_y, mul);
                 }
             }
         }
