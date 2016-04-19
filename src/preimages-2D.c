@@ -137,7 +137,7 @@ int main (int argc, char **argv) {
     ngb.a = ngb.x * ngb.y;
     printf     ("ngb.a               = %i\n", ngb.a);
     // check if it is within allowed values, for example (ngb.a < 9==3*3)
-    if ((ngb.a == 0) || (ngb.a >= 9)) {
+    if ((ngb.a == 0) || (ngb.a > 9)) {
         fprintf (stderr, "ERROR: neighborhood area (ngb.a = %u) is outside range [1:9].\n", ngb.a);
         return (1);
     }
