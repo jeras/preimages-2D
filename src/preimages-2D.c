@@ -101,6 +101,32 @@ int gol_rule () {
     return (0);
 }
 
+// read CA state from file
+int ca_read (char *filename, ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
+    FILE *fp;
+    fp = fopen (filename, "r");
+    if (!fp) {
+        fprintf (stderr, "ERROR: file %s not found\n", filename);
+        return (1);
+    }
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+             fscanf (fp, "%u", &ca [y] [x]);
+        }
+    }
+    fclose (fp);
+}
+
+// print CA state
+int ca_print (ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
+    for (int unsigned y=0; y<siz.y; y++) {
+        printf ("CA [y=%u]:", y);
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf (" %u", ca [y] [x]);
+        }
+        printf ("\n");
+    }
+}
 
 int main (int argc, char **argv) {
     // configuration
@@ -158,9 +184,8 @@ int main (int argc, char **argv) {
     mpz_clear (range);
 
     typedef struct {
-        int unsigned o;     // output value
-        int unsigned x [2]; // left/right edge index
-        int unsigned y [2]; // bottom/top edge index
+        int unsigned o;                 // output value
+        int unsigned n [ngb.y] [ngb.x]; // neighborhood state
     } map_t;
 
     // rule table (conversion to base sts)
@@ -174,115 +199,69 @@ int main (int argc, char **argv) {
         mpz_init (tmp);
         tab[i].o = mpz_tdiv_q_ui (tmp, rule_q, sts);
         mpz_init_set (rule_q, tmp);
-        // populate X overlap pointer table
-        int unsigned a [ngb.y] [ngb.x];
-        number2array (sts, ngb.a, (unsigned int *) a, i);
-        for (int unsigned j=0; j<2; j++) {
-             int unsigned o [ngb.y-1] [ngb.x];
-             array_slice (ngb.x, ngb.y, 0, ngb.x, j, ngb.y+j-1, a, o);
-             array2number (sts, (ngb.y-1)*ngb.x, (unsigned int *) o, &(tab[i].y[j]));
+        // populate pointer table
+        number2array (sts, ngb.a, (unsigned int *) tab[i].n, i);
+        printf     ("tab[%4i].o       = %u ", i, tab[i].o);
+        printf ("[");
+        for (int unsigned y=0; y<ngb.y; y++) {
+            printf ("%s[", y ? "," : "");
+            for (int unsigned x=0; x<ngb.x; x++) {
+                printf ("%s%u", x ? "," : "", tab[i].n [y] [x]);
+            }
+            printf ("]");
         }
-        for (int unsigned j=0; j<2; j++) {
-             int unsigned o [ngb.y] [ngb.x-1];
-             array_slice (ngb.x, ngb.y, j, ngb.x+j-1, 0, ngb.y, a, o);
-             array2number (sts, ngb.y*(ngb.x-1), (int unsigned *) o, &(tab[i].x[j]));
-        }
-        printf     ("tab[%4i].o       = %u, ox{%u,%u} oy{%u,%u}\n", i, tab[i].o, tab[i].x[0], tab[i].x[1], tab[i].y[0], tab[i].y[1]);
+        printf ("]");
+        printf ("\n");
     }
     mpz_clear (rule_q);
     mpz_clear (rule_r);
     
-    // overlap states (sts ** ovl_n)
-    uintca_t ovl_x = pow (sts, ngb.a - ngb.y);
-    uintca_t ovl_y = pow (sts, ngb.a - ngb.x);
-    printf     ("ovl_x               = %lld\n", ovl_x);
-    printf     ("ovl_y               = %lld\n", ovl_y);
+    // overlap states
+    uintca_t ovl = pow (sts, ngb.a - 1);
+    printf     ("ovl                 = %lld\n", ovl);
 
     // read CA configuration file
     int unsigned ca [siz.y] [siz.x];
-    FILE *fp;
-    fp = fopen (filename, "r");
-    if (!fp) {
-        fprintf (stderr, "ERROR: file %s not found\n", filename);
-        return (1);
-    }
-    for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-             fscanf (fp, "%u", &ca [y] [x]);
-        }
-    }
-    fclose (fp);
-    // printout CA state
-    for (int unsigned y=0; y<siz.y; y++) {
-        printf ("CA [y=%u]:", y);
-        for (int unsigned x=0; x<siz.x; x++) {
-            printf (" %u", ca [y] [x]);
-        }
-        printf ("\n");
-    }
+    ca_read (filename, siz, ca);
+    ca_print (siz, ca);
 
     // memory allocation for preimage network
-    mpz_t net_x [siz.y  ] [siz.x+1] [ovl_x];
-    mpz_t net_y [siz.y+1] [siz.x  ] [ovl_y];
+    mpz_t net [siz.y+1] [siz.x+1] [ovl];
 
     // initialize array x
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
-             for (int unsigned i=0; i<ovl_x; i++) {
+             for (int unsigned i=0; i<ovl; i++) {
                  // TODO: for now only a unit weight edge is supportedunsigned int *
-                 mpz_init_set_ui (net_x [y] [x] [i], !x ? 1 : 0);
+                 mpz_init_set_ui (net [y] [x] [i], !x || !y ? 1 : 0);
              }
         }
     }
 
-    // initialize array y
-    for (int unsigned y=0; y<=siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-             for (int unsigned i=0; i<ovl_y; i++) {
-                 // TODO: for now only a unit weight edge is supportedunsigned int *
-                 mpz_init_set_ui (net_y [y] [x] [i], !y ? 1 : 0);
-             }
-        }
-    }
-
-    // compute network weights
-    mpz_t mul;
-    mpz_init (mul);
-    for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-            for (int unsigned i=0; i<ngb_n; i++) {
-                if (tab [i].o == ca [y] [x]) {
-                    mpz_mul (mul, net_x [y] [x] [tab [i].x [0]]
-                                , net_y [y] [x] [tab [i].y [0]]);
-                    mpz_t tmp_x;
-                    mpz_t tmp_y;
-                    mpz_init_set (tmp_x, net_x [y  ] [x+1] [tab [i].x [1]]);
-                    mpz_init_set (tmp_y, net_y [y+1] [x  ] [tab [i].y [1]]);
-                    mpz_add (net_x [y  ] [x+1] [tab [i].x [1]], tmp_x, mul);
-                    mpz_add (net_y [y+1] [x  ] [tab [i].y [1]], tmp_y, mul);
-                }
-            }
-        }
-    }
+//    // compute network weights
+//    mpz_t mul;
+//    mpz_init (mul);
+//    for (int unsigned y=0; y<siz.y; y++) {
+//        for (int unsigned x=0; x<siz.x; x++) {
+//            for (int unsigned i=0; i<ngb_n; i++) {
+//                if (tab [i].o == ca [y] [x]) {
+//                    mpz_mul (mul, net [y] [x] [tab [i].x [0]]
+//                                , net [y] [x] [tab [i].y [0]]);
+//                    mpz_t tmp_x;
+//                    mpz_init_set (tmp_x, net [y  ] [x+1] [tab [i].x [1]]);
+//                    mpz_add (net [y  ] [x+1] [tab [i].x [1]], tmp_x, mul);
+//                }
+//            }
+//        }
+//    }
 
     // printout preimage network weights
-    printf ("network X\n");
+    printf ("network\n");
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
             printf (" [");
-            for (int unsigned i=0; i<ovl_x; i++) {
-                gmp_printf ("%s%Zi", i ? " " : "", net_x [y] [x] [i]);
-            }
-            printf ("]");
-        }
-        printf ("\n");
-    }
-    printf ("network Y\n");
-    for (int unsigned y=0; y<=siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-            printf (" [");
-            for (int unsigned i=0; i<ovl_y; i++) {
-                gmp_printf ("%s%Zi", i ? " " : "", net_y [y] [x] [i]);
+            for (int unsigned i=0; i<ovl; i++) {
+                gmp_printf ("%s%Zi", i ? "," : "", net [y] [x] [i]);
             }
             printf ("]");
         }
