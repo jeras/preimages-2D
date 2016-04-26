@@ -45,6 +45,10 @@ typedef struct {
 //    int unsigned n;
 } ca_size_t;
 
+////////////////////////////////////////////////////////////////////////////////
+// array <--> number  conversions
+////////////////////////////////////////////////////////////////////////////////
+
 int unsigned array2number (int unsigned base, int unsigned len, int unsigned array[len], int unsigned *number) {
     *number = 0;
     for (int unsigned i=0; i<len; i++) {
@@ -75,8 +79,12 @@ int unsigned array_slice (
     return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// rule handling
+////////////////////////////////////////////////////////////////////////////////
+
 // function for transforming the Game of Life rule description into a number
-int gol_rule () {
+int rule_gol () {
     int unsigned len = 1<<9;
     mpz_t rule;
     mpz_init_set_ui (rule, 0);
@@ -100,6 +108,10 @@ int gol_rule () {
     gmp_printf ("RULE GoL             = %Zi\n", rule);
     return (0);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// CA configuration handling
+////////////////////////////////////////////////////////////////////////////////
 
 // read CA state from file
 int ca_read (char *filename, ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
@@ -127,6 +139,10 @@ int ca_print (ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
         printf ("\n");
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// main
+////////////////////////////////////////////////////////////////////////////////
 
 int main (int argc, char **argv) {
     // configuration
@@ -228,8 +244,8 @@ int main (int argc, char **argv) {
     // memory allocation for preimage network
     mpz_t net [siz.y+1] [siz.x+1] [ovl];
 
-    // initialize array x
-    for (int unsigned y=0; y<siz.y; y++) {
+    // initialize array
+    for (int unsigned y=0; y<=siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
              for (int unsigned i=0; i<ovl; i++) {
                  // TODO: for now only a unit weight edge is supportedunsigned int *
@@ -257,7 +273,7 @@ int main (int argc, char **argv) {
 
     // printout preimage network weights
     printf ("network\n");
-    for (int unsigned y=0; y<siz.y; y++) {
+    for (int unsigned y=0; y<=siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
             printf (" [");
             for (int unsigned i=0; i<ovl; i++) {
@@ -269,7 +285,7 @@ int main (int argc, char **argv) {
     }
 
     // remove unused code
-    gol_rule ();
+    rule_gol ();
     return (0);
 }
 
