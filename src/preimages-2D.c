@@ -206,15 +206,11 @@ int main (int argc, char **argv) {
 
     // rule table (conversion to base sts)
     map_t tab [ngb_n];
-    mpz_t rule_q, rule_r;
+    mpz_t rule_q;
     mpz_init_set (rule_q, rule);
-    mpz_init (rule_r);
     for (int unsigned i=0; i<ngb_n; i++) {
         // populate transition function
-        mpz_t tmp;
-        mpz_init (tmp);
-        tab[i].o = mpz_tdiv_q_ui (tmp, rule_q, sts);
-        mpz_init_set (rule_q, tmp);
+        tab[i].o = mpz_tdiv_q_ui (rule_q, rule_q, sts);
         // populate pointer table
         number2array (sts, ngb.a, (unsigned int *) tab[i].n, i);
         printf     ("tab[%4i].o       = %u ", i, tab[i].o);
@@ -230,7 +226,6 @@ int main (int argc, char **argv) {
         printf ("\n");
     }
     mpz_clear (rule_q);
-    mpz_clear (rule_r);
     
     // overlap states
     uintca_t ovl = pow (sts, ngb.a - 1);
@@ -247,48 +242,81 @@ int main (int argc, char **argv) {
     // initialize array
     for (int unsigned y=0; y<=siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
-             for (int unsigned i=0; i<ovl; i++) {
-                 // TODO: for now only a unit weight edge is supportedunsigned int *
-                 mpz_init_set_ui (net [y] [x] [i], !x || !y ? 1 : 0);
-             }
+            for (int unsigned i=0; i<ovl; i++) {
+                // TODO: for now only a unit weight edge is supportedunsigned int *
+                mpz_init_set_ui (net [y] [x] [i], !x || !y ? 1 : 0);
+            }
         }
     }
 
     // temporary structure
-    const int unsigned ovl_x = pow (sts, ngb.a - ngb.y);
-    const int unsigned ovl_y = pow (sts, ngb.a - ngb.x);
-    const int unsigned ovl_z = pow (sts, 1);
+    const int unsigned ovl_x  = pow (sts, (ngb.x-1)*(ngb.y  )  );
+    const int unsigned ovl_xp = pow (sts,           (ngb.y  )-1);
+    const int unsigned ovl_y  = pow (sts, (ngb.x  )*(ngb.y-1)  );
+    const int unsigned ovl_yp = pow (sts, (ngb.x  )          -1);
+    const int unsigned ovl_z  = pow (sts, (ngb.x-1)*(ngb.y-1)  );
+    const int unsigned ovl_zp = pow (sts, (ngb.x-1)*(ngb.y-1)  );
     struct {
-        struct {
-            mpz_t w;
-            int unsigned p [sts];
-        } x [ovl_x];
-        struct {
-            mpz_t w;
-            int unsigned p [sts];
-        } y [ovl_y];
-        struct {
-            mpz_t w;
-            int unsigned p [sts];
-        } z [ovl_z];
-    } net_tmp [ovl];
+        // pointers to relevant rule table lines and result overlaps
+        int unsigned r [sts];
+        int unsigned o [sts];
+        // pointers to X/Y/Z dimension edges
+        int unsigned xp [ovl_xp];
+        int unsigned yp [ovl_yp];
+        int unsigned zp [ovl_zp];
+    } tmp [ovl];
 
-//    // compute network weights
-//    mpz_t mul;
-//    mpz_init (mul);
-//    for (int unsigned y=0; y<siz.y; y++) {
-//        for (int unsigned x=0; x<siz.x; x++) {
-//            for (int unsigned i=0; i<ngb_n; i++) {
-//                if (tab [i].o == ca [y] [x]) {
-//                    mpz_mul (mul, net [y] [x] [tab [i].x [0]]
-//                                , net [y] [x] [tab [i].y [0]]);
-//                    mpz_t tmp_x;
-//                    mpz_init_set (tmp_x, net [y  ] [x+1] [tab [i].x [1]]);
-//                    mpz_add (net [y  ] [x+1] [tab [i].x [1]], tmp_x, mul);
-//                }
-//            }
-//        }
-//    }
+    // populate pointers
+    for (int unsigned o=0; o<ovl; o++) {
+        for (int unsigned s=0; s<sts; s++) {
+            tmp[o].r[s] = 0;
+            tmp[o].o[s] = 0;
+        }
+        for (int unsigned xp=0; xp<ovl_xp; xp++)  tmp[o].xp[xp] = 0;
+        for (int unsigned yp=0; yp<ovl_yp; yp++)  tmp[o].yp[yp] = 0;
+        for (int unsigned zp=0; zp<ovl_zp; zp++)  tmp[o].zp[zp] = 0;
+    }
+
+    // compute network weights
+    // weights for X/Y/Z dimension edges
+    mpz_t xw;
+    mpz_t yw;
+    mpz_t zw;
+    mpz_t w;
+    mpz_init (xw);
+    mpz_init (yw);
+    mpz_init (zw);
+    mpz_init (w);
+    for (int unsigned y=1; y<=siz.y; y++) {
+        for (int unsigned x=1; x<=siz.x; x++) {
+            // construct temporary result array/structure
+            for (int unsigned o=0; o<ovl; o++) {
+                mpz_set_ui (xw, 0);
+                mpz_set_ui (yw, 0);
+                mpz_set_ui (zw, 0);
+                for (int unsigned xp=0; xp<ovl_xp; xp++) {
+                    mpz_add (xw, xw, net [y-1] [x  ] [tmp[o].xp[xp]]);
+                }
+                for (int unsigned yp=0; yp<ovl_yp; yp++) {
+                    mpz_add (yw, yw, net [y  ] [x-1] [tmp[o].yp[yp]]);
+                }
+                for (int unsigned zp=0; zp<ovl_zp; zp++) {
+                    mpz_add (zw, zw, net [y-1] [x-1] [tmp[o].zp[zp]]);
+                }
+            }
+            for (int unsigned o=0; o<ovl; o++) {
+                mpz_mul (w, xw, yw);
+                if (mpz_sgn (w)) {
+                    mpz_divexact (w, w, zw);
+                    for (int unsigned s=0; s<sts; s++) {
+                        if (tab [tmp[o].r[s]].o == ca [y] [x]) {
+                            mpz_add (net [y] [x] [tmp[o].o[s]], net [y] [x] [tmp[o].o[s]], w);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // printout preimage network weights
     printf ("network\n");
