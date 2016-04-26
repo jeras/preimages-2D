@@ -79,6 +79,38 @@ int unsigned array_slice (
     return 0;
 }
 
+int unsigned array_combine_x (
+    int unsigned ix0, int unsigned ix1,
+    int unsigned iy,
+    int unsigned ia0[iy][ix0], int unsigned ia1[iy][ix1], int unsigned oa[iy][ix1+ix0])
+{
+    for (int unsigned y=0; y<iy; y++) {
+        for (int unsigned x=0; x<ix0; x++) {
+            oa[y][x    ] = ia0[y][x];
+        }
+        for (int unsigned x=0; x<ix1; x++) {
+            oa[y][x+ix0] = ia1[y][x];
+        }
+    }
+    return 0;
+}
+
+int unsigned array_combine_y (
+    int unsigned ix,
+    int unsigned iy0, int unsigned iy1,
+    int unsigned ia0[iy0][ix], int unsigned ia1[iy1][ix], int unsigned oa[iy1+iy0][ix])
+{
+    for (int unsigned x=0; x<ix; x++) {
+        for (int unsigned y=0; y<iy0; y++) {
+            oa[y    ][x] = ia0[y][x];
+        }
+        for (int unsigned y=0; y<iy1; y++) {
+            oa[y+iy0][x] = ia1[y][x];
+        }
+    }
+    return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // rule handling
 ////////////////////////////////////////////////////////////////////////////////
