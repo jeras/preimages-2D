@@ -254,6 +254,25 @@ int main (int argc, char **argv) {
         }
     }
 
+    // temporary structure
+    const int unsigned ovl_x = pow (sts, ngb.a - ngb.y);
+    const int unsigned ovl_y = pow (sts, ngb.a - ngb.x);
+    const int unsigned ovl_z = pow (sts, 1);
+    struct {
+        struct {
+            mpz_t w;
+            int unsigned p [sts];
+        } x [ovl_x];
+        struct {
+            mpz_t w;
+            int unsigned p [sts];
+        } y [ovl_y];
+        struct {
+            mpz_t w;
+            int unsigned p [sts];
+        } z [ovl_z];
+    } net_tmp [ovl];
+
 //    // compute network weights
 //    mpz_t mul;
 //    mpz_init (mul);
