@@ -39,13 +39,26 @@
 #define uintca_t long long int unsigned
 
 typedef struct {
-    int unsigned x;
     int unsigned y;
+    int unsigned x;
 } size2D_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 // array <--> number  conversions
 ////////////////////////////////////////////////////////////////////////////////
+
+int unsigned array_print (size2D_t s, int unsigned array[s.y][s.x]) {
+    printf ("[");
+    for (int unsigned y=0; y<s.y; y++) {
+        printf ("%s[", y ? "," : "");
+        for (int unsigned x=0; x<s.x; x++) {
+            printf ("%s%u", x ? "," : "", array [y] [x]);
+        }
+        printf ("]");
+    }
+    printf ("]");
+    return 0;
+}
 
 int unsigned array2number (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned *number) {
     *number = 0;
@@ -263,57 +276,107 @@ int main (int argc, char **argv) {
     ca_read (filename, siz, ca);
     ca_print (siz, ca);
 
+    // counting the possible number of preimages, used to reserve memory
+    mpz_t max;
+    mpz_init (max);
+    mpz_ui_pow_ui (max, sts, siz.y * siz.x);
+    gmp_printf ("max                 = %Zi\n", max);
+    size_t btn;
+    btn = mpz_sizeinbase (max, 2);
+    mpz_clear (max);
+    printf     ("btn                 = %zu\n", btn);
+
     // memory allocation for preimage network
     mpz_t net [siz.y+1] [siz.x+1] [ovl];
 
     // initialize array
     for (int unsigned y=0; y<=siz.y; y++) {
         for (int unsigned x=0; x<=siz.x; x++) {
-            for (int unsigned i=0; i<ovl; i++) {
-                // TODO: for now only a unit weight edge is supportedunsigned int *
-                mpz_init_set_ui (net [y] [x] [i], !x || !y ? 1 : 0);
+            for (int unsigned o=0; o<ovl; o++) {
+                // TODO: for now only a unit weight edge is supported unsigned int *
+                mpz_init2 (net [y] [x] [o], btn);
             }
         }
     }
 
+    // set boundary value
+    for (int unsigned y=0; y<=siz.y; y++) {
+        for (int unsigned o=0; o<ovl; o++) {
+            mpz_set_ui (net [y] [0] [o], 1);
+        }
+    }
+    for (int unsigned x=0; x<=siz.x; x++) {
+        for (int unsigned o=0; o<ovl; o++) {
+            mpz_set_ui (net [0] [x] [o], 1);
+        }
+    }
+
+
     // temporary structure
     const int unsigned ovl_x  = pow (sts, (ngb.x-1)*(ngb.y  )  );
-    const int unsigned ovl_xp = pow (sts,           (ngb.y  )-1);
     const int unsigned ovl_y  = pow (sts, (ngb.x  )*(ngb.y-1)  );
-    const int unsigned ovl_yp = pow (sts, (ngb.x  )          -1);
     const int unsigned ovl_z  = pow (sts, (ngb.x-1)*(ngb.y-1)  );
-    const int unsigned ovl_zp = pow (sts, (ngb.x-1)*(ngb.y-1)  );
     struct {
         // pointers to relevant rule table lines and result overlaps
         int unsigned r [sts];
         int unsigned o [sts];
-        // pointers to X/Y/Z dimension edges
-        int unsigned xp [ovl_xp];
-        int unsigned yp [ovl_yp];
-        int unsigned zp [ovl_zp];
-    } tmp [ovl];
+    } ptr [ovl];
+
+    // pointers to X/Y/Z(xy) dimension edges
+    int unsigned pix [ovl], pox [ovl];
+    int unsigned piy [ovl], poy [ovl];
+    int unsigned piz [ovl], poz [ovl];
 
     // populate pointers
+//        for (int unsigned s=0; s<sts; s++) {
+//            ptr[o].r[s] = 0;
+//            ptr[o].o[s] = 0;
+//        }
     for (int unsigned o=0; o<ovl; o++) {
-        for (int unsigned s=0; s<sts; s++) {
-            tmp[o].r[s] = 0;
-            tmp[o].o[s] = 0;
-        }
-        for (int unsigned xp=0; xp<ovl_xp; xp++)  tmp[o].xp[xp] = 0;
-        for (int unsigned yp=0; yp<ovl_yp; yp++)  tmp[o].yp[yp] = 0;
-        for (int unsigned zp=0; zp<ovl_zp; zp++)  tmp[o].zp[zp] = 0;
+        int unsigned n = o * sts;
+        int unsigned a [ngb.y] [ngb.x];
+
+        size2D_t     s0 = {0, 0}; 
+        size2D_t     s1 = {1, 1}; 
+
+        size2D_t     sx = {ngb.y, ngb.x-1}; 
+        int unsigned ax [sx.y] [sx.x];
+
+        size2D_t     sy = {ngb.y-1, ngb.x}; 
+        int unsigned ay [sy.y] [sy.x];
+
+        size2D_t     sz = {ngb.y-1, ngb.x-1}; 
+        int unsigned az [sz.y] [sz.x];
+
+        number2array (sts, ngb, a, n);
+//        array_print (ngb, a);
+//        printf     (" -> ");
+
+        array_slice (ngb, (size2D_t) {0, 1}, (size2D_t) {0+sx.y, 1+sx.x}, a, ax);
+        array2number (sts, sx, ax, &pix[o]);
+        array_slice (ngb, (size2D_t) {1, 0}, (size2D_t) {1+sy.y, 0+sy.x}, a, ay);
+        array2number (sts, sy, ay, &piy[o]);
+        array_slice (ngb, (size2D_t) {1, 1}, (size2D_t) {1+sz.y, 1+sz.x}, a, az);
+        array2number (sts, sz, az, &piz[o]);
+//        array_print (sx, ax);
+//        printf     (" pix[o]               = %u\n", pix[o]);
+
+        pix[o] = 0;
+        piy[o] = 0;
+        piz[o] = 0;
     }
 
     // compute network weights
     // weights for X/Y/Z dimension edges
-    mpz_t xw;
-    mpz_t yw;
-    mpz_t zw;
+    mpz_t wx [ovl_x];
+    mpz_t wy [ovl_y];
+    mpz_t wz [ovl_z];
     mpz_t w;
-    mpz_init (xw);
-    mpz_init (yw);
-    mpz_init (zw);
+    for (int unsigned i=0; i<ovl_x; i++)  mpz_init2 (wx[i], btn);
+    for (int unsigned i=0; i<ovl_y; i++)  mpz_init2 (wy[i], btn);
+    for (int unsigned i=0; i<ovl_z; i++)  mpz_init2 (wz[i], btn);
     mpz_init (w);
+/*
     for (int unsigned y=1; y<=siz.y; y++) {
         for (int unsigned x=1; x<=siz.x; x++) {
             // construct temporary result array/structure
@@ -322,13 +385,13 @@ int main (int argc, char **argv) {
                 mpz_set_ui (yw, 0);
                 mpz_set_ui (zw, 0);
                 for (int unsigned xp=0; xp<ovl_xp; xp++) {
-                    mpz_add (xw, xw, net [y-1] [x  ] [tmp[o].xp[xp]]);
+                    mpz_add (xw, xw, net [y-1] [x  ] [ptr[o].xp[xp]]);
                 }
                 for (int unsigned yp=0; yp<ovl_yp; yp++) {
-                    mpz_add (yw, yw, net [y  ] [x-1] [tmp[o].yp[yp]]);
+                    mpz_add (yw, yw, net [y  ] [x-1] [ptr[o].yp[yp]]);
                 }
                 for (int unsigned zp=0; zp<ovl_zp; zp++) {
-                    mpz_add (zw, zw, net [y-1] [x-1] [tmp[o].zp[zp]]);
+                    mpz_add (zw, zw, net [y-1] [x-1] [ptr[o].zp[zp]]);
                 }
             }
             for (int unsigned o=0; o<ovl; o++) {
@@ -336,15 +399,15 @@ int main (int argc, char **argv) {
                 if (mpz_sgn (w)) {
                     mpz_divexact (w, w, zw);
                     for (int unsigned s=0; s<sts; s++) {
-                        if (tab [tmp[o].r[s]] == ca [y] [x]) {
-                            mpz_add (net [y] [x] [tmp[o].o[s]], net [y] [x] [tmp[o].o[s]], w);
+                        if (tab [ptr[o].r[s]] == ca [y] [x]) {
+                            mpz_add (net [y] [x] [ptr[o].o[s]], net [y] [x] [ptr[o].o[s]], w);
                         }
                     }
                 }
             }
         }
     }
-
+*/
     // printout preimage network weights
     printf ("network\n");
     for (int unsigned y=0; y<=siz.y; y++) {
