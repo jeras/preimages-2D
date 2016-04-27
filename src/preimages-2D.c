@@ -41,71 +41,71 @@
 typedef struct {
     int unsigned x;
     int unsigned y;
-    int unsigned a;
-//    int unsigned n;
-} ca_size_t;
+} size2D_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 // array <--> number  conversions
 ////////////////////////////////////////////////////////////////////////////////
 
-int unsigned array2number (int unsigned base, int unsigned len, int unsigned array[len], int unsigned *number) {
+int unsigned array2number (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned *number) {
     *number = 0;
-    for (int unsigned i=0; i<len; i++) {
-        *number *= base;
-        *number += array[i];
+    for (int unsigned y=0; y<s.y; y++) {
+        for (int unsigned x=0; x<s.x; x++) {
+            *number *= base;
+            *number += array [y] [x];
+        }
     }
     return 0;
 }
 
-int unsigned number2array (int unsigned base, int unsigned len, int unsigned array[len], int unsigned number) {
-    for (int unsigned i=0; i<len; i++) {
-        array[i] = number % base;
-        number /= base;
+int unsigned number2array (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned number) {
+    for (int unsigned y=0; y<s.y; y++) {
+        for (int unsigned x=0; x<s.x; x++) {
+            array [y] [x] = number % base;
+            number /= base;
+        }
     }
     return 0;
 }
 
 int unsigned array_slice (
-    int unsigned ix, int unsigned iy,
-    int unsigned ox0, int unsigned ox1, int unsigned oy0, int unsigned oy1,
-    int unsigned ia[iy][ix], int unsigned oa[oy1-oy0][ox1-ox0])
+    size2D_t is,
+    size2D_t os0, size2D_t os1,
+    int unsigned ia[is.y][is.x], int unsigned oa[os1.y-os0.y][os1.x-os0.x])
 {
-    for (int unsigned y=0; y<oy1-oy0; y++) {
-        for (int unsigned x=0; x<ox1-ox0; x++) {
-            oa[y][x] = ia[oy0+y][ox0+x];
+    for (int unsigned y=0; y<os1.y-os0.y; y++) {
+        for (int unsigned x=0; x<os1.x-os0.x; x++) {
+            oa[y][x] = ia[os0.y+y][os0.x+x];
         }
     }
     return 0;
 }
 
 int unsigned array_combine_x (
-    int unsigned ix0, int unsigned ix1,
-    int unsigned iy,
-    int unsigned ia0[iy][ix0], int unsigned ia1[iy][ix1], int unsigned oa[iy][ix1+ix0])
+    size2D_t is0, size2D_t is1,
+    int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is0.y][is1.x+is0.x])
 {
-    for (int unsigned y=0; y<iy; y++) {
-        for (int unsigned x=0; x<ix0; x++) {
-            oa[y][x    ] = ia0[y][x];
+    for (int unsigned y=0; y<is0.y; y++) {
+        for (int unsigned x=0; x<is0.x; x++) {
+            oa[y][x      ] = ia0[y][x];
         }
-        for (int unsigned x=0; x<ix1; x++) {
-            oa[y][x+ix0] = ia1[y][x];
+        for (int unsigned x=0; x<is1.x; x++) {
+            oa[y][x+is0.x] = ia1[y][x];
         }
     }
     return 0;
 }
 
 int unsigned array_combine_y (
-    int unsigned ix,
-    int unsigned iy0, int unsigned iy1,
-    int unsigned ia0[iy0][ix], int unsigned ia1[iy1][ix], int unsigned oa[iy1+iy0][ix])
+    size2D_t is0, size2D_t is1,
+    int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is1.y+is0.y][is0.x])
 {
-    for (int unsigned x=0; x<ix; x++) {
-        for (int unsigned y=0; y<iy0; y++) {
-            oa[y    ][x] = ia0[y][x];
+    for (int unsigned x=0; x<is0.x; x++) {
+        for (int unsigned y=0; y<is0.y; y++) {
+            oa[y      ][x] = ia0[y][x];
         }
-        for (int unsigned y=0; y<iy1; y++) {
-            oa[y+iy0][x] = ia1[y][x];
+        for (int unsigned y=0; y<is0.y; y++) {
+            oa[y+is0.y][x] = ia1[y][x];
         }
     }
     return 0;
@@ -141,12 +141,27 @@ int rule_gol () {
     return (0);
 }
 
+//int rule_print (int unsigned nx, int unsigned ny, int unsigned sts, tab[pow (sts, ny*nx)]) {
+//    for (int unsigned i=0; i<ngb_n; i++) {
+//        // populate pointer table
+//        printf ("tab [");
+//        for (int unsigned y=0; y<ngb.y; y++) {
+//            printf ("%s[", y ? "," : "");
+//            for (int unsigned x=0; x<ngb.x; x++) {
+//                printf ("%s%u", x ? "," : "", tab[i].n [y] [x]);
+//            }
+//            printf ("]");
+//        }
+//        printf ("] = %u\n", tab[i]);
+//    }
+//}
+
 ////////////////////////////////////////////////////////////////////////////////
 // CA configuration handling
 ////////////////////////////////////////////////////////////////////////////////
 
 // read CA state from file
-int ca_read (char *filename, ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
+int ca_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
     FILE *fp;
     fp = fopen (filename, "r");
     if (!fp) {
@@ -162,7 +177,7 @@ int ca_read (char *filename, ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
 }
 
 // print CA state
-int ca_print (ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
+int ca_print (size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
     for (int unsigned y=0; y<siz.y; y++) {
         printf ("CA [y=%u]:", y);
         for (int unsigned x=0; x<siz.x; x++) {
@@ -179,9 +194,9 @@ int ca_print (ca_size_t siz, int unsigned ca [siz.y] [siz.x]) {
 int main (int argc, char **argv) {
     // configuration
     int unsigned sts;
-    ca_size_t    ngb;
+    size2D_t     ngb;
     mpz_t        rule;
-    ca_size_t    siz;
+    size2D_t     siz;
     char *filename;
     FILE  file;
 
@@ -208,16 +223,14 @@ int main (int argc, char **argv) {
     printf     ("filename            = %s\n", filename);
 
     // neighborhood area
-    ngb.a = ngb.x * ngb.y;
-    printf     ("ngb.a               = %i\n", ngb.a);
-    // check if it is within allowed values, for example (ngb.a < 9==3*3)
-    if ((ngb.a == 0) || (ngb.a > 9)) {
-        fprintf (stderr, "ERROR: neighborhood area (ngb.a = %u) is outside range [1:9].\n", ngb.a);
+    // check if it is within allowed values, for example less then 9==3*3
+    if ((ngb.x == 0) || (ngb.y == 0) || ((ngb.y * ngb.x) > 9)) {
+        fprintf (stderr, "ERROR: neighborhood area %u is outside range [1:9].\n", ngb.y * ngb.x);
         return (1);
     }
 
     // neighborhood states (sts ** ngb_n)
-    uintca_t ngb_n = pow (sts, ngb.a);
+    uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
     printf     ("ngb_n               = %lld\n", ngb_n);
 
     // check if rule is within range = sts ** (sts ** ngb_n)
@@ -231,36 +244,18 @@ int main (int argc, char **argv) {
     }
     mpz_clear (range);
 
-    typedef struct {
-        int unsigned o;                 // output value
-        int unsigned n [ngb.y] [ngb.x]; // neighborhood state
-    } map_t;
-
     // rule table (conversion to base sts)
-    map_t tab [ngb_n];
+    int unsigned tab [ngb_n];
     mpz_t rule_q;
     mpz_init_set (rule_q, rule);
     for (int unsigned i=0; i<ngb_n; i++) {
         // populate transition function
-        tab[i].o = mpz_tdiv_q_ui (rule_q, rule_q, sts);
-        // populate pointer table
-        number2array (sts, ngb.a, (unsigned int *) tab[i].n, i);
-        printf     ("tab[%4i].o       = %u ", i, tab[i].o);
-        printf ("[");
-        for (int unsigned y=0; y<ngb.y; y++) {
-            printf ("%s[", y ? "," : "");
-            for (int unsigned x=0; x<ngb.x; x++) {
-                printf ("%s%u", x ? "," : "", tab[i].n [y] [x]);
-            }
-            printf ("]");
-        }
-        printf ("]");
-        printf ("\n");
+        tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, sts);
     }
     mpz_clear (rule_q);
     
     // overlap states
-    uintca_t ovl = pow (sts, ngb.a - 1);
+    uintca_t ovl = pow (sts, ngb.y * ngb.x - 1);
     printf     ("ovl                 = %lld\n", ovl);
 
     // read CA configuration file
@@ -341,7 +336,7 @@ int main (int argc, char **argv) {
                 if (mpz_sgn (w)) {
                     mpz_divexact (w, w, zw);
                     for (int unsigned s=0; s<sts; s++) {
-                        if (tab [tmp[o].r[s]].o == ca [y] [x]) {
+                        if (tab [tmp[o].r[s]] == ca [y] [x]) {
                             mpz_add (net [y] [x] [tmp[o].o[s]], net [y] [x] [tmp[o].o[s]], w);
                         }
                     }
