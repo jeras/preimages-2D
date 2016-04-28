@@ -333,7 +333,7 @@ int main (int argc, char **argv) {
 //            ptr[o].o[s] = 0;
 //        }
     for (int unsigned o=0; o<ovl; o++) {
-        int unsigned n = o * sts;
+        int unsigned n;
         int unsigned a [ngb.y] [ngb.x];
 
         size2D_t     s0 = {0, 0}; 
@@ -348,22 +348,37 @@ int main (int argc, char **argv) {
         size2D_t     sz = {ngb.y-1, ngb.x-1}; 
         int unsigned az [sz.y] [sz.x];
 
+        // input pointers
+        n = o * sts;
         number2array (sts, ngb, a, n);
-//        array_print (ngb, a);
-//        printf     (" -> ");
-
         array_slice (ngb, (size2D_t) {0, 1}, (size2D_t) {0+sx.y, 1+sx.x}, a, ax);
         array2number (sts, sx, ax, &pix[o]);
         array_slice (ngb, (size2D_t) {1, 0}, (size2D_t) {1+sy.y, 0+sy.x}, a, ay);
         array2number (sts, sy, ay, &piy[o]);
         array_slice (ngb, (size2D_t) {1, 1}, (size2D_t) {1+sz.y, 1+sz.x}, a, az);
         array2number (sts, sz, az, &piz[o]);
-//        array_print (sx, ax);
-//        printf     (" pix[o]               = %u\n", pix[o]);
+        printf ("pointers i: ");
+        array_print (ngb, a); printf (" :: ");
+        array_print (sx, ax); printf (" -> pix[%u] = %u | ", o, pix[o]);
+        array_print (sy, ay); printf (" -> piy[%u] = %u | ", o, piy[o]);
+        array_print (sz, az); printf (" -> piz[%u] = %u | ", o, piz[o]);
+        printf ("\n");
 
-        pix[o] = 0;
-        piy[o] = 0;
-        piz[o] = 0;
+        // output pointers
+        n = o;
+        number2array (sts, ngb, a, n);
+        array_slice (ngb, (size2D_t) {0, 0}, sx, a, ax);
+        array2number (sts, sx, ax, &pox[o]);
+        array_slice (ngb, (size2D_t) {0, 0}, sy, a, ay);
+        array2number (sts, sy, ay, &poy[o]);
+        array_slice (ngb, (size2D_t) {0, 0}, sz, a, az);
+        array2number (sts, sz, az, &poz[o]);
+        printf ("pointers o: ");
+        array_print (ngb, a); printf (" :: ");
+        array_print (sx, ax); printf (" -> pox[%u] = %u | ", o, pox[o]);
+        array_print (sy, ay); printf (" -> poy[%u] = %u | ", o, poy[o]);
+        array_print (sz, az); printf (" -> poz[%u] = %u | ", o, poz[o]);
+        printf ("\n");
     }
 
     // compute network weights
