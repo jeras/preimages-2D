@@ -387,42 +387,37 @@ int main (int argc, char **argv) {
     mpz_t wy [ovl_y];
     mpz_t wz [ovl_z];
     mpz_t w;
-    for (int unsigned i=0; i<ovl_x; i++)  mpz_init2 (wx[i], btn);
-    for (int unsigned i=0; i<ovl_y; i++)  mpz_init2 (wy[i], btn);
-    for (int unsigned i=0; i<ovl_z; i++)  mpz_init2 (wz[i], btn);
+    for (int unsigned o=0; o<ovl_x; o++)  mpz_init2 (wx[o], btn);
+    for (int unsigned o=0; o<ovl_y; o++)  mpz_init2 (wy[o], btn);
+    for (int unsigned o=0; o<ovl_z; o++)  mpz_init2 (wz[o], btn);
     mpz_init (w);
-/*
+
     for (int unsigned y=1; y<=siz.y; y++) {
         for (int unsigned x=1; x<=siz.x; x++) {
+            // initialize temporary result array/structure
+            for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], 0);
+            for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], 0);
+            for (int unsigned o=0; o<ovl_z; o++)  mpz_set_ui (wz[o], 0);
             // construct temporary result array/structure
             for (int unsigned o=0; o<ovl; o++) {
-                mpz_set_ui (xw, 0);
-                mpz_set_ui (yw, 0);
-                mpz_set_ui (zw, 0);
-                for (int unsigned xp=0; xp<ovl_xp; xp++) {
-                    mpz_add (xw, xw, net [y-1] [x  ] [ptr[o].xp[xp]]);
-                }
-                for (int unsigned yp=0; yp<ovl_yp; yp++) {
-                    mpz_add (yw, yw, net [y  ] [x-1] [ptr[o].yp[yp]]);
-                }
-                for (int unsigned zp=0; zp<ovl_zp; zp++) {
-                    mpz_add (zw, zw, net [y-1] [x-1] [ptr[o].zp[zp]]);
-                }
+                mpz_add (wx [pix[o]], wx [pix[o]], net [y-1] [x  ] [o]);
+                mpz_add (wy [piy[o]], wy [piy[o]], net [y  ] [x-1] [o]);
+                mpz_add (wz [piz[o]], wz [piz[o]], net [y-1] [x-1] [o]);
             }
             for (int unsigned o=0; o<ovl; o++) {
-                mpz_mul (w, xw, yw);
+                mpz_mul (w, wy [poy[o]], wx [pox[o]]);
                 if (mpz_sgn (w)) {
-                    mpz_divexact (w, w, zw);
-                    for (int unsigned s=0; s<sts; s++) {
-                        if (tab [ptr[o].r[s]] == ca [y] [x]) {
-                            mpz_add (net [y] [x] [ptr[o].o[s]], net [y] [x] [ptr[o].o[s]], w);
-                        }
-                    }
+                    mpz_divexact (w, w, wz [poz[o]]);
+//                    for (int unsigned s=0; s<sts; s++) {
+//                        if (tab [ptr[o].r[s]] == ca [y] [x]) {
+//                            mpz_add (net [y] [x] [ptr[o].o[s]], net [y] [x] [ptr[o].o[s]], w);
+//                        }
+//                    }
                 }
             }
         }
     }
-*/
+
     // printout preimage network weights
     printf ("network\n");
     for (int unsigned y=0; y<=siz.y; y++) {
