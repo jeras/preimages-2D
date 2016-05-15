@@ -36,94 +36,9 @@
 #include <math.h>
 #include <gmp.h>
 
-#define uintca_t long long int unsigned
-
-typedef struct {
-    int unsigned y;
-    int unsigned x;
-} size2D_t;
-
-////////////////////////////////////////////////////////////////////////////////
-// array <--> number  conversions
-////////////////////////////////////////////////////////////////////////////////
-
-int unsigned array_print (size2D_t s, int unsigned array[s.y][s.x]) {
-    printf ("[");
-    for (int unsigned y=0; y<s.y; y++) {
-        printf ("%s[", y ? "," : "");
-        for (int unsigned x=0; x<s.x; x++) {
-            printf ("%s%u", x ? "," : "", array [y] [x]);
-        }
-        printf ("]");
-    }
-    printf ("]");
-    return 0;
-}
-
-int unsigned array2number (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned *number) {
-    *number = 0;
-    int unsigned mul = 1;
-    for (int unsigned y=0; y<s.y; y++) {
-        for (int unsigned x=0; x<s.x; x++) {
-            *number += array [y] [x] * mul;
-            mul *= base;
-        }
-    }
-    return 0;
-}
-
-int unsigned number2array (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned number) {
-    for (int unsigned y=0; y<s.y; y++) {
-        for (int unsigned x=0; x<s.x; x++) {
-            array [y] [x] = number % base;
-            number /= base;
-        }
-    }
-    return 0;
-}
-
-int unsigned array_slice (
-    size2D_t is,
-    size2D_t os0, size2D_t os1,
-    int unsigned ia[is.y][is.x], int unsigned oa[os1.y-os0.y][os1.x-os0.x])
-{
-    for (int unsigned y=0; y<os1.y-os0.y; y++) {
-        for (int unsigned x=0; x<os1.x-os0.x; x++) {
-            oa[y][x] = ia[os0.y+y][os0.x+x];
-        }
-    }
-    return 0;
-}
-
-int unsigned array_combine_x (
-    size2D_t is0, size2D_t is1,
-    int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is0.y][is1.x+is0.x])
-{
-    for (int unsigned y=0; y<is0.y; y++) {
-        for (int unsigned x=0; x<is0.x; x++) {
-            oa[y][x      ] = ia0[y][x];
-        }
-        for (int unsigned x=0; x<is1.x; x++) {
-            oa[y][x+is0.x] = ia1[y][x];
-        }
-    }
-    return 0;
-}
-
-int unsigned array_combine_y (
-    size2D_t is0, size2D_t is1,
-    int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is1.y+is0.y][is0.x])
-{
-    for (int unsigned x=0; x<is0.x; x++) {
-        for (int unsigned y=0; y<is0.y; y++) {
-            oa[y      ][x] = ia0[y][x];
-        }
-        for (int unsigned y=0; y<is0.y; y++) {
-            oa[y+is0.y][x] = ia1[y][x];
-        }
-    }
-    return 0;
-}
+#include "ca2d.h"
+#include "ca2d_array.h"
+#include "ca2d_configuration.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // rule handling
@@ -169,37 +84,6 @@ int rule_gol () {
 //        printf ("] = %u\n", tab[i]);
 //    }
 //}
-
-////////////////////////////////////////////////////////////////////////////////
-// CA configuration handling
-////////////////////////////////////////////////////////////////////////////////
-
-// read CA state from file
-int ca_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
-    FILE *fp;
-    fp = fopen (filename, "r");
-    if (!fp) {
-        fprintf (stderr, "ERROR: file %s not found\n", filename);
-        return (1);
-    }
-    for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-             fscanf (fp, "%u", &ca [y] [x]);
-        }
-    }
-    fclose (fp);
-}
-
-// print CA state
-int ca_print (size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
-    for (int unsigned y=0; y<siz.y; y++) {
-        printf ("CA [y=%u]:", y);
-        for (int unsigned x=0; x<siz.x; x++) {
-            printf (" %u", ca [y] [x]);
-        }
-        printf ("\n");
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
@@ -289,29 +173,121 @@ int main (int argc, char **argv) {
 
 
 
+
+
     // memory allocation for preimage network
-    mpz_t net [siz.y+1] [siz.x+1] [ngb_n];
+    mpz_t net [2] [2] [siz.y] [siz.x] [ngb_n];
 
     // initialize array
-    for (int unsigned y=0; y<=siz.y; y++) {
-        for (int unsigned x=0; x<=siz.x; x++) {
-            for (int unsigned n=0; n<ngb_n; o++) {
-                // TODO: for now only a unit weight edge is supported unsigned int *
-                mpz_init2 (net [y] [x] [n], btn);
+    for (int unsigned dy=0; dy<2; dy++) {
+        for (int unsigned dx=0; dx<2; dx++) {
+            for (int unsigned y=0; y<siz.y; y++) {
+                for (int unsigned x=0; x<siz.x; x++) {
+                    for (int unsigned n=0; n<ngb_n; n++) {
+                        // TODO: for now only a unit weight edge is supported unsigned int *
+                        mpz_init (net [dy] [dx] [y] [x] [n]);
+                    }
+                }
             }
         }
     }
 
-    // set boundary value
-    for (int unsigned y=0; y<=siz.y; y++) {
+    // temporary structure
+    const int unsigned ovl_x = pow (sts, (ngb.x-1)*(ngb.y  ));
+    const int unsigned ovl_y = pow (sts, (ngb.x  )*(ngb.y-1));
+
+    // pointers to X/Y/Z(xy) dimension edges
+    int unsigned px [2] [ngb_n];
+    int unsigned py [2] [ngb_n];
+
+    size2D_t     sx = {ngb.y, ngb.x-1}; 
+    int unsigned ax [sx.y] [sx.x];
+ 
+    size2D_t     sy = {ngb.y-1, ngb.x}; 
+    int unsigned ay [sy.y] [sy.x];
+        
+    int unsigned a [ngb.y] [ngb.x];
+        
+    for (int unsigned y=0; y<2; y++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            mpz_set_ui (net [y] [0] [n], 1);
+            number2array (sts, ngb, a, n);
+
+            array_slice (ngb, (size2D_t) {y, 0}, (size2D_t) {y+sy.y, sy.x}, a, ay);
+            array2number (sts, sy, ay, &py [y] [n]);
+
+            printf ("pointers i: ");
+            array_print (ngb, a); printf (" :: ");
+            array_print (sy, ay); printf (" -> py[%u] = %u | ", n, py [y] [n]);
+            printf ("\n");
         }
     }
-    for (int unsigned x=0; x<=siz.x; x++) {
+    for (int unsigned x=0; x<2; x++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            mpz_set_ui (net [0] [x] [n], 1);
+            number2array (sts, ngb, a, n);
+
+            array_slice (ngb, (size2D_t) {0, x}, (size2D_t) {sy.y, x+sy.x}, a, ax);
+            array2number (sts, sx, ax, &px [x] [n]);
+
+            printf ("pointers i: ");
+            array_print (ngb, a); printf (" :: ");
+            array_print (sx, ax); printf (" -> px[%u] = %u | ", n, px [x] [n]);
+            printf ("\n");
         }
+    }
+
+    // compute network weights
+    // weights for X/Y/Z dimension edges
+    mpz_t wy [ovl_y];
+    mpz_t wx [ovl_x];
+    for (int unsigned o=0; o<ovl_y; o++)  mpz_init (wy[o]);
+    for (int unsigned o=0; o<ovl_x; o++)  mpz_init (wx[o]);
+
+    int unsigned dy=0;
+    int unsigned dx=0;
+
+    for (int unsigned y=1; y<siz.y; y++) {
+        for (int unsigned x=1; x<siz.x; x++) {
+            // initialize temporary result array/structure
+            for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
+            for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
+            // construct temporary result array/structure
+            for (int unsigned n=0; n<ngb_n; n++) {
+                if (dy ? y==(siz.y-1) : y==0) {
+                    mpz_add (wy [py[dy][n]], wy [py[dy][n]], net [dy] [dx] [y-1] [x] [n]);
+                }
+                if (dx ? x==(siz.x-1) : x==0) {
+                    mpz_add (wx [px[dx][n]], wx [px[dx][n]], net [dy] [dx] [y] [x-1] [n]);
+                }
+            }
+//            gmp_printf ("net[%u][%u] :: ", y, x);
+//            for (int unsigned o=0; o<ovl; o++) {
+//                mpz_mul (w, wy [poy[o]], wx [pox[o]]);
+//                if (mpz_sgn (w)) {
+//                    mpz_divexact (w, w, wz [poz[o]]);
+//                    for (int unsigned s=0; s<sts; s++) {
+//                        if (tab [pts[o][s]] == ca [y-1] [x-1]) {
+//                        gmp_printf ("sw (%u,%Zi,%u) pts=%u ", s, w, mpz_sgn (w), pts[o][s]);
+//                            mpz_add (net [y] [x] [pto[o][s]], net [y] [x] [pto[o][s]], w);
+//                        }
+//                    }
+//                }
+//                gmp_printf ("xyzw (%Zi,%Zi,%Zi,%Zi) ", wx [pox[o]], wy [poy[o]], wz [poz[o]], w);
+//            }
+//            gmp_printf ("\n");
+        }
+    }
+
+    // printout preimage network weights
+    printf ("network\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf (" [");
+            for (int unsigned n=0; n<ngb_n; n++) {
+                gmp_printf ("%s%Zi", n ? "," : "", net [dy] [dx] [y] [x] [n]);
+            }
+            printf ("]");
+        }
+        printf ("\n");
     }
 
 
