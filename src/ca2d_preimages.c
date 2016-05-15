@@ -245,35 +245,26 @@ int main (int argc, char **argv) {
     int unsigned dy=0;
     int unsigned dx=0;
 
-    for (int unsigned y=1; y<siz.y; y++) {
-        for (int unsigned x=1; x<siz.x; x++) {
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
             // initialize temporary result array/structure
             for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
             for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
             // construct temporary result array/structure
             for (int unsigned n=0; n<ngb_n; n++) {
-                if (dy ? y==(siz.y-1) : y==0) {
+                if (!(dy ? y==(siz.y-1) : y==0)) {
                     mpz_add (wy [py[dy][n]], wy [py[dy][n]], net [dy] [dx] [y-1] [x] [n]);
                 }
-                if (dx ? x==(siz.x-1) : x==0) {
+                if (!(dx ? x==(siz.x-1) : x==0)) {
                     mpz_add (wx [px[dx][n]], wx [px[dx][n]], net [dy] [dx] [y] [x-1] [n]);
                 }
+                gmp_printf ("(%Zi,%Zi) ", wy [py[dy][n]], wx [px[dx][n]]);
             }
-//            gmp_printf ("net[%u][%u] :: ", y, x);
-//            for (int unsigned o=0; o<ovl; o++) {
-//                mpz_mul (w, wy [poy[o]], wx [pox[o]]);
-//                if (mpz_sgn (w)) {
-//                    mpz_divexact (w, w, wz [poz[o]]);
-//                    for (int unsigned s=0; s<sts; s++) {
-//                        if (tab [pts[o][s]] == ca [y-1] [x-1]) {
-//                        gmp_printf ("sw (%u,%Zi,%u) pts=%u ", s, w, mpz_sgn (w), pts[o][s]);
-//                            mpz_add (net [y] [x] [pto[o][s]], net [y] [x] [pto[o][s]], w);
-//                        }
-//                    }
-//                }
-//                gmp_printf ("xyzw (%Zi,%Zi,%Zi,%Zi) ", wx [pox[o]], wy [poy[o]], wz [poz[o]], w);
-//            }
-//            gmp_printf ("\n");
+            for (int unsigned n=0; n<ngb_n; n++) {
+                if (tab [n] == ca [y] [x]) {
+                    mpz_mul (net [dy] [dx] [y] [x] [n], wy [py[dy][n]], wx [px[dx][n]]);
+                }
+            }
         }
     }
 
