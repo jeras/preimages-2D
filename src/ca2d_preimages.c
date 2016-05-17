@@ -70,20 +70,24 @@ int rule_gol () {
     return (0);
 }
 
-//int rule_print (int unsigned nx, int unsigned ny, int unsigned sts, tab[pow (sts, ny*nx)]) {
-//    for (int unsigned i=0; i<ngb_n; i++) {
-//        // populate pointer table
-//        printf ("tab [");
-//        for (int unsigned y=0; y<ngb.y; y++) {
-//            printf ("%s[", y ? "," : "");
-//            for (int unsigned x=0; x<ngb.x; x++) {
-//                printf ("%s%u", x ? "," : "", tab[i].n [y] [x]);
-//            }
-//            printf ("]");
-//        }
-//        printf ("] = %u\n", tab[i]);
-//    }
-//}
+int rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
+    int unsigned a [ngb.y] [ngb.x];
+    for (int unsigned n=0; n<pow(sts, ngb.y*ngb.x); n++) {
+        // convert table index into neighborhood status 2D array
+        number2array (sts, ngb, a, n);
+        // populate pointer table
+        printf ("tab [");
+        for (int unsigned y=0; y<ngb.y; y++) {
+            printf ("%s[", y ? "," : "");
+            for (int unsigned x=0; x<ngb.x; x++) {
+                printf ("%s%u", x ? "," : "", a[y][x]);
+            }
+            printf ("]");
+        }
+        printf ("] = %u\n", tab[n]);
+    }
+    return (0);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
@@ -151,7 +155,8 @@ int main (int argc, char **argv) {
         tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, sts);
     }
     mpz_clear (rule_q);
-    
+    rule_print(sts, ngb, tab);   
+ 
     // overlap states
     uintca_t ovl = pow (sts, ngb.y * ngb.x - 1);
     printf     ("ovl                 = %lld\n", ovl);
@@ -215,10 +220,10 @@ int main (int argc, char **argv) {
             array_slice (ngb, (size2D_t) {y, 0}, (size2D_t) {y+sy.y, sy.x}, a, ay);
             array2number (sts, sy, ay, &py [y] [n]);
 
-            printf ("pointers i: ");
-            array_print (ngb, a); printf (" :: ");
-            array_print (sy, ay); printf (" -> py[%u] = %u | ", n, py [y] [n]);
-            printf ("\n");
+//            printf ("pointers i: ");
+//            array_print (ngb, a); printf (" :: ");
+//            array_print (sy, ay); printf (" -> py[%u] = %u | ", n, py [y] [n]);
+//            printf ("\n");
         }
     }
     for (int unsigned x=0; x<2; x++) {
@@ -228,10 +233,10 @@ int main (int argc, char **argv) {
             array_slice (ngb, (size2D_t) {0, x}, (size2D_t) {sy.y, x+sy.x}, a, ax);
             array2number (sts, sx, ax, &px [x] [n]);
 
-            printf ("pointers i: ");
-            array_print (ngb, a); printf (" :: ");
-            array_print (sx, ax); printf (" -> px[%u] = %u | ", n, px [x] [n]);
-            printf ("\n");
+//            printf ("pointers i: ");
+//            array_print (ngb, a); printf (" :: ");
+//            array_print (sx, ax); printf (" -> px[%u] = %u | ", n, px [x] [n]);
+//            printf ("\n");
         }
     }
 
@@ -239,44 +244,60 @@ int main (int argc, char **argv) {
     // weights for X/Y/Z dimension edges
     mpz_t wy [ovl_y];
     mpz_t wx [ovl_x];
+    mpz_t w;
     for (int unsigned o=0; o<ovl_y; o++)  mpz_init (wy[o]);
     for (int unsigned o=0; o<ovl_x; o++)  mpz_init (wx[o]);
+    mpz_init (w);
 
-    int unsigned dy=0;
-    int unsigned dx=0;
-
-    for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-            // initialize temporary result array/structure
-            for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
-            for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
-            // construct temporary result array/structure
-            for (int unsigned n=0; n<ngb_n; n++) {
-                if (!(dy ? y==(siz.y-1) : y==0)) {
-                    mpz_add (wy [py[dy][n]], wy [py[dy][n]], net [dy] [dx] [y-1] [x] [n]);
-                }
-                if (!(dx ? x==(siz.x-1) : x==0)) {
-                    mpz_add (wx [px[dx][n]], wx [px[dx][n]], net [dy] [dx] [y] [x-1] [n]);
-                }
-                gmp_printf ("(%Zi,%Zi) ", wy [py[dy][n]], wx [px[dx][n]]);
-            }
-            for (int unsigned n=0; n<ngb_n; n++) {
-                if (tab [n] == ca [y] [x]) {
-                    mpz_mul (net [dy] [dx] [y] [x] [n], wy [py[dy][n]], wx [px[dx][n]]);
+    for (int unsigned dy=0; dy<2; dy++) {
+        for (int y=dy?siz.y-1:0; dy?(y>=0):(y<siz.y); y=dy?y-1:y+1) {
+            for (int unsigned dx=0; dx<2; dx++) {
+                for (int x=dx?siz.x-1:0; dx?(x>=0):(x<siz.x); x=dx?x-1:x+1) {
+                    int ny = dy ? y+1 : y-1;
+                    int nx = dx ? x+1 : x-1;
+                    // initialize temporary result array/structure
+                    for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
+                    for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
+                    // construct temporary result array/structure
+                    for (int unsigned n=0; n<ngb_n; n++) {
+                        if (!(dy ? y==(siz.y-1) : y==0)) {
+                            mpz_mul (w, net [dy] [0] [ny] [x] [n], net [dy] [1] [ny] [x] [n]);
+                            mpz_add (wy [py[dy][n]], wy [py[dy][n]], w);
+                        }
+                        if (!(dx ? x==(siz.x-1) : x==0)) {
+                            mpz_add (wx [px[dx][n]], wx [px[dx][n]], net [dy] [dx] [y] [nx] [n]);
+                        }
+                        gmp_printf ("(%Zi,%Zi) ", wy [py[dy][n]], wx [px[dx][n]]);
+                    }
+                    for (int unsigned n=0; n<ngb_n; n++) {
+                        if (tab [n] == ca [y] [x]) {
+                            mpz_mul (net [dy] [dx] [y] [x] [n], wy [py[dy][n]], wx [px[dx][n]]);
+                        }
+                    }
                 }
             }
         }
     }
+    printf ("\n");
+
+    int unsigned dy=0;
+    int unsigned dx=0;
 
     // printout preimage network weights
     printf ("network\n");
-    for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
-            printf (" [");
-            for (int unsigned n=0; n<ngb_n; n++) {
-                gmp_printf ("%s%Zi", n ? "," : "", net [dy] [dx] [y] [x] [n]);
+    for (int unsigned dy=0; dy<2; dy++) {
+        for (int y=siz.y-1; y>=0; y--) {
+            for (int unsigned dx=0; dx<2; dx++) {
+                for (int unsigned x=0; x<siz.x; x++) {
+                    printf (" %sy%d%sx%d [", dy?"-":"+", y, dx?"-":"+", x);
+                    for (int unsigned n=0; n<ngb_n; n++) {
+                        gmp_printf ("%s%Zi", n ? "," : "", net [dy] [dx] [y] [x] [n]);
+                    }
+                    printf ("]");
+                }
+                printf ("\n");
             }
-            printf ("]");
+            printf ("\n");
         }
         printf ("\n");
     }
