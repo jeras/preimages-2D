@@ -278,6 +278,10 @@ int main (int argc, char **argv) {
                         if (tab [n] == ca [y] [x]) {
                             mpz_mul (net [dy] [dx] [y] [x] [n], wy [py[dy][n]], wx [px[dx][n]]);
                         }
+                        // TODO: when a proper algorithm for computing weights is foung, remove this line
+                        if (mpz_sgn (net [dy] [dx] [y] [x] [n])) {
+                            mpz_set_ui (net [dy] [dx] [y] [x] [n], 1);
+                        }
                     }
                 }
             }
@@ -291,7 +295,7 @@ int main (int argc, char **argv) {
     // printout preimage network weights
     printf ("network\n");
     for (int unsigned dy=0; dy<2; dy++) {
-        for (int y=siz.y-1; y>=0; y--) {
+        for (int unsigned y=0; y<siz.y; y++) {
             for (int unsigned dx=0; dx<2; dx++) {
                 for (int unsigned x=0; x<siz.x; x++) {
                     printf (" %sy%d%sx%d [", dy?"-":"+", y, dx?"-":"+", x);
