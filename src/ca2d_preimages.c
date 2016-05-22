@@ -74,7 +74,7 @@ int rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) pow (s
     int unsigned a [ngb.y] [ngb.x];
     for (int unsigned n=0; n<pow(sts, ngb.y*ngb.x); n++) {
         // convert table index into neighborhood status 2D array
-        number2array (sts, ngb, a, n);
+        ca2d_array_from_ui (sts, ngb, a, n);
         // populate pointer table
         printf ("tab [%X] = [", n);
         for (int unsigned y=0; y<ngb.y; y++) {
@@ -215,28 +215,28 @@ int main (int argc, char **argv) {
         
     for (int unsigned y=0; y<2; y++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            number2array (sts, ngb, a, n);
+            ca2d_array_from_ui (sts, ngb, a, n);
 
-            array_slice (ngb, (size2D_t) {y, 0}, (size2D_t) {y+sy.y, sy.x}, a, ay);
-            array2number (sts, sy, ay, &py [y] [n]);
+            ca2d_array_slice (ngb, (size2D_t) {y, 0}, (size2D_t) {y+sy.y, sy.x}, a, ay);
+            ca2d_array_to_ui (sts, sy, ay, &py [y] [n]);
 
             printf ("pointers i: ");
-            array_print (ngb, a); printf (" :: ");
-            array_print (sy, ay); printf (" -> py[%u][%X] = %u | ", y, n, py [y] [n]);
+            ca2d_array_print (ngb, a); printf (" :: ");
+            ca2d_array_print (sy, ay); printf (" -> py[%u][%X] = %u | ", y, n, py [y] [n]);
             printf ("\n");
         }
         printf ("\n");
     }
     for (int unsigned x=0; x<2; x++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            number2array (sts, ngb, a, n);
+            ca2d_array_from_ui (sts, ngb, a, n);
 
-            array_slice (ngb, (size2D_t) {0, x}, (size2D_t) {sx.y, x+sx.x}, a, ax);
-            array2number (sts, sx, ax, &px [x] [n]);
+            ca2d_array_slice (ngb, (size2D_t) {0, x}, (size2D_t) {sx.y, x+sx.x}, a, ax);
+            ca2d_array_to_ui (sts, sx, ax, &px [x] [n]);
 
             printf ("pointers i: ");
-            array_print (ngb, a); printf (" :: ");
-            array_print (sx, ax); printf (" -> px[%u][%X] = %u | ", x, n, px [x] [n]);
+            ca2d_array_print (ngb, a); printf (" :: ");
+            ca2d_array_print (sx, ax); printf (" -> px[%u][%X] = %u | ", x, n, px [x] [n]);
             printf ("\n");
         }
         printf ("\n");
@@ -310,6 +310,29 @@ int main (int argc, char **argv) {
         }
         printf ("\n");
     }
+
+    // printout preimage network weights
+    printf ("network overview\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            mpz_t w;
+            mpz_init (w);
+            for (int unsigned n=0; n<ngb_n; n++) {
+                mpz_t wn;
+                mpz_init (wn);
+                mpz_set_ui (wn, 1);
+                for (int unsigned dy=0; dy<2; dy++) {
+                    for (int unsigned dx=0; dx<2; dx++) {
+                        mpz_mul (wn, wn, net [dy] [dx] [y] [x] [n]);
+                    }
+                }
+                mpz_add (w, w, wn);
+            }
+            gmp_printf ("%s%Zi", x ? "," : "", w);
+        }
+        printf ("\n");
+    }
+    printf ("\n");
 
 
 

@@ -55,44 +55,44 @@
 
         // input pointers
         n = o * sts;
-        number2array (sts, ngb, a, n);
-        array_slice (ngb, (size2D_t) {0, 1}, (size2D_t) {0+sx.y, 1+sx.x}, a, ax);
-        array2number (sts, sx, ax, &pix[o]);
-        array_slice (ngb, (size2D_t) {1, 0}, (size2D_t) {1+sy.y, 0+sy.x}, a, ay);
-        array2number (sts, sy, ay, &piy[o]);
-        array_slice (ngb, (size2D_t) {1, 1}, (size2D_t) {1+sz.y, 1+sz.x}, a, az);
-        array2number (sts, sz, az, &piz[o]);
+        ca2d_array_from_ui (sts, ngb, a, n);
+        ca2d_array_slice (ngb, (size2D_t) {0, 1}, (size2D_t) {0+sx.y, 1+sx.x}, a, ax);
+        ca2d_array_to_ui (sts, sx, ax, &pix[o]);
+        ca2d_array_slice (ngb, (size2D_t) {1, 0}, (size2D_t) {1+sy.y, 0+sy.x}, a, ay);
+        ca2d_array_to_ui (sts, sy, ay, &piy[o]);
+        ca2d_array_slice (ngb, (size2D_t) {1, 1}, (size2D_t) {1+sz.y, 1+sz.x}, a, az);
+        ca2d_array_to_ui (sts, sz, az, &piz[o]);
         printf ("pointers i: ");
-        array_print (ngb, a); printf (" :: ");
-        array_print (sx, ax); printf (" -> pix[%u] = %u | ", o, pix[o]);
-        array_print (sy, ay); printf (" -> piy[%u] = %u | ", o, piy[o]);
-        array_print (sz, az); printf (" -> piz[%u] = %u | ", o, piz[o]);
+        ca2d_array_print (ngb, a); printf (" :: ");
+        ca2d_array_print (sx, ax); printf (" -> pix[%u] = %u | ", o, pix[o]);
+        ca2d_array_print (sy, ay); printf (" -> piy[%u] = %u | ", o, piy[o]);
+        ca2d_array_print (sz, az); printf (" -> piz[%u] = %u | ", o, piz[o]);
         printf ("\n");
 
         // output pointers
         n = o;
-        number2array (sts, ngb, a, n);
-        array_slice (ngb, (size2D_t) {0, 0}, sx, a, ax);
-        array2number (sts, sx, ax, &pox[o]);
-        array_slice (ngb, (size2D_t) {0, 0}, sy, a, ay);
-        array2number (sts, sy, ay, &poy[o]);
-        array_slice (ngb, (size2D_t) {0, 0}, sz, a, az);
-        array2number (sts, sz, az, &poz[o]);
+        ca2d_array_from_ui (sts, ngb, a, n);
+        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sx, a, ax);
+        ca2d_array_to_ui (sts, sx, ax, &pox[o]);
+        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sy, a, ay);
+        ca2d_array_to_ui (sts, sy, ay, &poy[o]);
+        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sz, a, az);
+        ca2d_array_to_ui (sts, sz, az, &poz[o]);
         printf ("pointers o: ");
-        array_print (ngb, a); printf (" :: ");
-        array_print (sx, ax); printf (" -> pox[%u] = %u | ", o, pox[o]);
-        array_print (sy, ay); printf (" -> poy[%u] = %u | ", o, poy[o]);
-        array_print (sz, az); printf (" -> poz[%u] = %u | ", o, poz[o]);
+        ca2d_array_print (ngb, a); printf (" :: ");
+        ca2d_array_print (sx, ax); printf (" -> pox[%u] = %u | ", o, pox[o]);
+        ca2d_array_print (sy, ay); printf (" -> poy[%u] = %u | ", o, poy[o]);
+        ca2d_array_print (sz, az); printf (" -> poz[%u] = %u | ", o, poz[o]);
         printf ("\n");
 
         // transcribe pointers
         n = o;
         for (int unsigned s=0; s<sts; s++) {
-            number2array (sts, ngb, a, n);
+            ca2d_array_from_ui (sts, ngb, a, n);
             a [ngb.y-1] [ngb.x-1] = s;
             printf (" ");
-            array_print (ngb, a);
-            array2number (sts, ngb, a, &pts[o][s]);
+            ca2d_array_print (ngb, a);
+            ca2d_array_to_ui (sts, ngb, a, &pts[o][s]);
             pto[o][s] = pts[o][s] / sts;
             printf (" pts[%u][%u]=%u, pto[%u][%u]=%u", o, s, pts[o][s], o, s, pto[o][s]);
         }
