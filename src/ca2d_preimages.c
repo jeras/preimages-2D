@@ -336,6 +336,19 @@ int main (int argc, char **argv) {
 
 
 
+    // read CA configuration file
+    size2D_t ts = {4,4};
+    int unsigned ta [ts.y] [ts.x];
+    mpz_t num;
+    mpz_init (num);
+    for (int unsigned i=0; i<(1<<(4*4)); i++) {
+        mpz_set_ui (num, i);
+        ca2d_array_from_mpz (sts, ts, ta, num);
+        ca2d_array_to_mpz (sts, ts, ta, num);
+        if (mpz_cmp_ui (num, i)!=0) {
+            printf ("error i=%u\n", i);
+        }
+    }
 
     return (0);
 }
