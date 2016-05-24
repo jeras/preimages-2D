@@ -164,8 +164,8 @@ int main (int argc, char **argv) {
 
     // read CA configuration file
     int unsigned ca [siz.y] [siz.x];
-    ca_read (filename, siz, ca);
-    ca_print (siz, ca);
+    ca2d_read (filename, siz, ca);
+    ca2d_print (siz, ca);
 
     // counting the possible number of preimages, used to reserve memory
     mpz_t max;
@@ -338,7 +338,7 @@ int main (int argc, char **argv) {
 
 
     // test conversion array <-> gmp_t
-    size2D_t tsi = {4,4};
+    size2D_t tsi = {2,2};
     size2D_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
     int unsigned nmi = (size_t) pow (sts, tsi.y*tsi.x);
     int unsigned nmo = (size_t) pow (sts, tso.y*tso.x);
@@ -354,6 +354,7 @@ int main (int argc, char **argv) {
     for (int unsigned i=0; i<nmi; i++) {
         mpz_set_ui (num, i);
         ca2d_array_from_mpz (sts, tsi, tai, num);
+        ca2d_print (tsi, tai);
         ca2d_forward (sts, tsi, ngb, ngb_n, tab, tai, tao);
         mpz_init (li[i]);
         ca2d_array_to_mpz (sts, tso, tao, li[i]);

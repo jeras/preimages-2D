@@ -7,7 +7,7 @@
 #include "ca2d.h"
 
 // read CA state from file
-int ca_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
+int ca2d_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
     FILE *fp;
     fp = fopen (filename, "r");
     if (!fp) {
@@ -23,7 +23,7 @@ int ca_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
 }
 
 // print CA state
-int ca_print (size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
+int ca2d_print (size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
     for (int unsigned y=0; y<siz.y; y++) {
         printf ("CA [y=%u]:", y);
         for (int unsigned x=0; x<siz.x; x++) {
