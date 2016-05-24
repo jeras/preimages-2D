@@ -39,6 +39,7 @@
 #include "ca2d.h"
 #include "ca2d_array.h"
 #include "ca2d_configuration.h"
+#include "ca2d_forward.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // rule handling
@@ -336,18 +337,30 @@ int main (int argc, char **argv) {
 
 
 
-    // read CA configuration file
-    size2D_t ts = {4,4};
-    int unsigned ta [ts.y] [ts.x];
+    // test conversion array <-> gmp_t
+    size2D_t tsi = {4,4};
+    size2D_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
+    int unsigned nmi = (size_t) pow (sts, tsi.y*tsi.x);
+    int unsigned nmo = (size_t) pow (sts, tso.y*tso.x);
+    mpz_t li [nmi];
+    int unsigned lo [nmo];
+    for (int unsigned i=0; i<nmo; i++) {
+       lo [i] = 0;
+    }
+    int unsigned tai [tsi.y] [tsi.x];
+    int unsigned tao [tso.y] [tso.x];
     mpz_t num;
     mpz_init (num);
-    for (int unsigned i=0; i<(1<<(4*4)); i++) {
+    for (int unsigned i=0; i<nmi; i++) {
         mpz_set_ui (num, i);
-        ca2d_array_from_mpz (sts, ts, ta, num);
-        ca2d_array_to_mpz (sts, ts, ta, num);
-        if (mpz_cmp_ui (num, i)!=0) {
-            printf ("error i=%u\n", i);
-        }
+        ca2d_array_from_mpz (sts, tsi, tai, num);
+        ca2d_forward (sts, tsi, ngb, ngb_n, tab, tai, tao);
+        mpz_init (li[i]);
+        ca2d_array_to_mpz (sts, tso, tao, li[i]);
+        lo [mpz_get_ui (li[i])] ++;
+    }
+    for (int unsigned i=0; i<nmo; i++) {
+        gmp_printf ("%3u --> %3u%s", i, lo[i], (i+1)%8 ? " " : "\n");
     }
 
     return (0);
