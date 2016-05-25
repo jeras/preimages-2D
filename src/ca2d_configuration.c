@@ -20,6 +20,7 @@ int ca2d_read (char *filename, size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
         }
     }
     fclose (fp);
+    return (0);
 }
 
 // print CA state
@@ -31,5 +32,6 @@ int ca2d_print (size2D_t siz, int unsigned ca [siz.y] [siz.x]) {
         }
         printf ("\n");
     }
+    return (0);
 }
 
