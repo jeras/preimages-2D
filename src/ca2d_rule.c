@@ -43,7 +43,7 @@ int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[(size_t) pow (ca2d.sts, ca2d.
     // neighborhood area
     // check if it is within allowed values, for example less then 9==3*3
     if ((ca2d.ngb.x == 0) || (ca2d.ngb.y == 0) || ((ca2d.ngb.y * ca2d.ngb.x) > 9)) {
-        fprintf (stderr, "ERROR: neighborhood area %u is outside range [1:9].\n", ca2d.ngb.y * ca2d.ngb.x);
+        printf ("ERROR: neighborhood area %u is outside range [1:9].\n", ca2d.ngb.y * ca2d.ngb.x);
         return (1);
     }
 
@@ -54,9 +54,8 @@ int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[(size_t) pow (ca2d.sts, ca2d.
     mpz_t range;
     mpz_init (range);
     mpz_ui_pow_ui (range, ca2d.sts, ngb_n);
-    gmp_printf ("range               = %Zi\n", range);
     if (mpz_cmp (ca2d.rule, range) > 0) {
-        fprintf (stderr, "ERROR: rule is outside of range\n");
+        gmp_printf ("ERROR: rule is outside of range = %Zi\n", range);
         return (1);
     }
     mpz_clear (range);
