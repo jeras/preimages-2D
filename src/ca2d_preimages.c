@@ -48,10 +48,8 @@
 
 int main (int argc, char **argv) {
     // configuration
-    int unsigned sts;
-    ca2d_size_t     ngb;
-    mpz_t        rule;
-    ca2d_size_t     siz;
+    ca2d_t  ca2d;
+    ca2d_size_t  siz;
     char *filename;
     FILE  file;
 
@@ -60,33 +58,29 @@ int main (int argc, char **argv) {
         fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
         return (1);
     }
-    sts   = strtoul (argv[1], 0, 0);
-    ngb.x = strtoul (argv[2], 0, 0);
-    ngb.y = strtoul (argv[3], 0, 0);
-    mpz_init_set_str (rule, argv[4], 0);
+    ca2d.sts   = strtoul (argv[1], 0, 0);
+    ca2d.ngb.x = strtoul (argv[2], 0, 0);
+    ca2d.ngb.y = strtoul (argv[3], 0, 0);
+    mpz_init_set_str (ca2d.rule, argv[4], 0);
     siz.x = strtoul (argv[5], 0, 0);
     siz.y = strtoul (argv[6], 0, 0);
     filename = argv[7];
 
     // printout call arguments for debugging purposes
-    printf     ("STATES              = %i\n", sts  );
-    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ngb.x);
-    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ngb.y);
-    gmp_printf ("RULE                = %Zi\n", rule);
     printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
 
     // neighborhood states (sts ** ngb_n)
-    uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
 
     // rule table (conversion to base sts)
     int unsigned tab [ngb_n];
-    ca2d_rule_table (sts, ngb, rule, tab);
-    ca2d_rule_print (sts, ngb, tab);   
+    ca2d_rule_table (ca2d, tab);
+    ca2d_rule_print (ca2d, tab);   
  
     // overlap states
-    uintca_t ovl = pow (sts, ngb.y * ngb.x - 1);
+    uintca_t ovl = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x - 1);
     printf     ("ovl                 = %lld\n", ovl);
 
     // read CA configuration file
@@ -97,7 +91,7 @@ int main (int argc, char **argv) {
     // counting the possible number of preimages, used to reserve memory
     mpz_t max;
     mpz_init (max);
-    mpz_ui_pow_ui (max, sts, siz.y * siz.x);
+    mpz_ui_pow_ui (max, ca2d.sts, siz.y * siz.x);
     gmp_printf ("max                 = %Zi\n", max);
     size_t btn;
     btn = mpz_sizeinbase (max, 2);
@@ -126,30 +120,30 @@ int main (int argc, char **argv) {
     }
 
     // temporary structure
-    const int unsigned ovl_x = pow (sts, (ngb.x-1)*(ngb.y  ));
-    const int unsigned ovl_y = pow (sts, (ngb.x  )*(ngb.y-1));
+    const int unsigned ovl_x = pow (ca2d.sts, (ca2d.ngb.x-1)*(ca2d.ngb.y  ));
+    const int unsigned ovl_y = pow (ca2d.sts, (ca2d.ngb.x  )*(ca2d.ngb.y-1));
 
     // pointers to X/Y/Z(xy) dimension edges
     int unsigned px [2] [ngb_n];
     int unsigned py [2] [ngb_n];
 
-    ca2d_size_t     sx = {ngb.y, ngb.x-1}; 
+    ca2d_size_t     sx = {ca2d.ngb.y, ca2d.ngb.x-1}; 
     int unsigned ax [sx.y] [sx.x];
  
-    ca2d_size_t     sy = {ngb.y-1, ngb.x}; 
+    ca2d_size_t     sy = {ca2d.ngb.y-1, ca2d.ngb.x}; 
     int unsigned ay [sy.y] [sy.x];
         
-    int unsigned a [ngb.y] [ngb.x];
+    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
         
     for (int unsigned y=0; y<2; y++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            ca2d_array_from_ui (sts, ngb, a, n);
+            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, n);
 
-            ca2d_array_slice (ngb, (ca2d_size_t) {y, 0}, sy, a, ay);
-            ca2d_array_to_ui (sts, sy, ay, &py [y] [n]);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {y, 0}, sy, a, ay);
+            ca2d_array_to_ui (ca2d.sts, sy, ay, &py [y] [n]);
 
             printf ("pointers i: ");
-            ca2d_array_print (ngb, a); printf (" :: ");
+            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
             ca2d_array_print (sy, ay); printf (" -> py[%u][%X] = %u | ", y, n, py [y] [n]);
             printf ("\n");
         }
@@ -157,13 +151,13 @@ int main (int argc, char **argv) {
     }
     for (int unsigned x=0; x<2; x++) {
         for (int unsigned n=0; n<ngb_n; n++) {
-            ca2d_array_from_ui (sts, ngb, a, n);
+            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, n);
 
-            ca2d_array_slice (ngb, (ca2d_size_t) {0, x}, sx, a, ax);
-            ca2d_array_to_ui (sts, sx, ax, &px [x] [n]);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, x}, sx, a, ax);
+            ca2d_array_to_ui (ca2d.sts, sx, ax, &px [x] [n]);
 
             printf ("pointers i: ");
-            ca2d_array_print (ngb, a); printf (" :: ");
+            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
             ca2d_array_print (sx, ax); printf (" -> px[%u][%X] = %u | ", x, n, px [x] [n]);
             printf ("\n");
         }
@@ -271,9 +265,9 @@ int main (int argc, char **argv) {
 
     // test conversion array <-> gmp_t
     ca2d_size_t tsi = {3,3};
-    ca2d_size_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
-    int unsigned nmi = (size_t) pow (sts, tsi.y*tsi.x);
-    int unsigned nmo = (size_t) pow (sts, tso.y*tso.x);
+    ca2d_size_t tso = {tsi.y-(ca2d.ngb.y-1), tsi.x-(ca2d.ngb.x-1)};
+    int unsigned nmi = (size_t) pow (ca2d.sts, tsi.y*tsi.x);
+    int unsigned nmo = (size_t) pow (ca2d.sts, tso.y*tso.x);
     mpz_t li [nmi];
     int unsigned lo [nmo];
     for (int unsigned i=0; i<nmo; i++) {
@@ -285,11 +279,11 @@ int main (int argc, char **argv) {
     mpz_init (num);
     for (int unsigned i=0; i<nmi; i++) {
         mpz_set_ui (num, i);
-        ca2d_array_from_mpz (sts, tsi, tai, num);
+        ca2d_array_from_mpz (ca2d.sts, tsi, tai, num);
 //        ca2d_print (tsi, tai);
-        ca2d_forward (sts, tsi, ngb, ngb_n, tab, tai, tao);
+        ca2d_forward (ca2d.sts, tsi, ca2d.ngb, ngb_n, tab, tai, tao);
         mpz_init (li[i]);
-        ca2d_array_to_mpz (sts, tso, tao, li[i]);
+        ca2d_array_to_mpz (ca2d.sts, tso, tao, li[i]);
         lo [mpz_get_ui (li[i])] ++;
     }
     for (int unsigned i=0; i<nmo; i++) {
