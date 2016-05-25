@@ -41,7 +41,7 @@ int ca2d_rule_gol () {
     return (0);
 }
 
-int ca2d_rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
+int ca2d_rule_print (int unsigned sts, ca2d_size_t ngb, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
     int unsigned a [ngb.y] [ngb.x];
     uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
     printf ("ngb_n = %lld\n", ngb_n);
@@ -62,7 +62,7 @@ int ca2d_rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) p
     return (0);
 }
 
-int ca2d_rule_table (int unsigned sts, size2D_t ngb, mpz_t rule, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
+int ca2d_rule_table (int unsigned sts, ca2d_size_t ngb, mpz_t rule, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
     // neighborhood area
     // check if it is within allowed values, for example less then 9==3*3
     if ((ngb.x == 0) || (ngb.y == 0) || ((ngb.y * ngb.x) > 9)) {

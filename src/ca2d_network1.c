@@ -41,26 +41,26 @@
         int unsigned n;
         int unsigned a [ngb.y] [ngb.x];
 
-        size2D_t     s0 = {0, 0}; 
-        size2D_t     s1 = {1, 1}; 
+        ca2d_size_t     s0 = {0, 0}; 
+        ca2d_size_t     s1 = {1, 1}; 
 
-        size2D_t     sx = {ngb.y, ngb.x-1}; 
+        ca2d_size_t     sx = {ngb.y, ngb.x-1}; 
         int unsigned ax [sx.y] [sx.x];
 
-        size2D_t     sy = {ngb.y-1, ngb.x}; 
+        ca2d_size_t     sy = {ngb.y-1, ngb.x}; 
         int unsigned ay [sy.y] [sy.x];
 
-        size2D_t     sz = {ngb.y-1, ngb.x-1}; 
+        ca2d_size_t     sz = {ngb.y-1, ngb.x-1}; 
         int unsigned az [sz.y] [sz.x];
 
         // input pointers
         n = o * sts;
         ca2d_array_from_ui (sts, ngb, a, n);
-        ca2d_array_slice (ngb, (size2D_t) {0, 1}, (size2D_t) {0+sx.y, 1+sx.x}, a, ax);
+        ca2d_array_slice (ngb, (ca2d_size_t) {0, 1}, (ca2d_size_t) {0+sx.y, 1+sx.x}, a, ax);
         ca2d_array_to_ui (sts, sx, ax, &pix[o]);
-        ca2d_array_slice (ngb, (size2D_t) {1, 0}, (size2D_t) {1+sy.y, 0+sy.x}, a, ay);
+        ca2d_array_slice (ngb, (ca2d_size_t) {1, 0}, (ca2d_size_t) {1+sy.y, 0+sy.x}, a, ay);
         ca2d_array_to_ui (sts, sy, ay, &piy[o]);
-        ca2d_array_slice (ngb, (size2D_t) {1, 1}, (size2D_t) {1+sz.y, 1+sz.x}, a, az);
+        ca2d_array_slice (ngb, (ca2d_size_t) {1, 1}, (ca2d_size_t) {1+sz.y, 1+sz.x}, a, az);
         ca2d_array_to_ui (sts, sz, az, &piz[o]);
         printf ("pointers i: ");
         ca2d_array_print (ngb, a); printf (" :: ");
@@ -72,11 +72,11 @@
         // output pointers
         n = o;
         ca2d_array_from_ui (sts, ngb, a, n);
-        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sx, a, ax);
+        ca2d_array_slice (ngb, (ca2d_size_t) {0, 0}, sx, a, ax);
         ca2d_array_to_ui (sts, sx, ax, &pox[o]);
-        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sy, a, ay);
+        ca2d_array_slice (ngb, (ca2d_size_t) {0, 0}, sy, a, ay);
         ca2d_array_to_ui (sts, sy, ay, &poy[o]);
-        ca2d_array_slice (ngb, (size2D_t) {0, 0}, sz, a, az);
+        ca2d_array_slice (ngb, (ca2d_size_t) {0, 0}, sz, a, az);
         ca2d_array_to_ui (sts, sz, az, &poz[o]);
         printf ("pointers o: ");
         ca2d_array_print (ngb, a); printf (" :: ");

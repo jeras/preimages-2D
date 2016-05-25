@@ -6,6 +6,6 @@
 typedef struct {
     int unsigned y;
     int unsigned x;
-} size2D_t;
+} ca2d_size_t;
 
 #endif

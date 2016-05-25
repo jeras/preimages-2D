@@ -10,7 +10,7 @@
 
 #include "ca2d.h"
 
-int unsigned ca2d_array_print (size2D_t s, int unsigned array[s.y][s.x]) {
+int unsigned ca2d_array_print (ca2d_size_t s, int unsigned array[s.y][s.x]) {
     printf ("[");
     for (int unsigned y=0; y<s.y; y++) {
         printf ("%s[", y ? "," : "");
@@ -23,7 +23,7 @@ int unsigned ca2d_array_print (size2D_t s, int unsigned array[s.y][s.x]) {
     return 0;
 }
 
-int unsigned ca2d_array_to_ui (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned *number) {
+int unsigned ca2d_array_to_ui (int unsigned base, ca2d_size_t s, int unsigned array[s.y][s.x], int unsigned *number) {
     *number = 0;
     int unsigned mul = 1;
     for (int unsigned y=0; y<s.y; y++) {
@@ -35,7 +35,7 @@ int unsigned ca2d_array_to_ui (int unsigned base, size2D_t s, int unsigned array
     return 0;
 }
 
-int unsigned ca2d_array_from_ui (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], int unsigned number) {
+int unsigned ca2d_array_from_ui (int unsigned base, ca2d_size_t s, int unsigned array[s.y][s.x], int unsigned number) {
     for (int unsigned y=0; y<s.y; y++) {
         for (int unsigned x=0; x<s.x; x++) {
             array [y] [x] = number % base;
@@ -45,7 +45,7 @@ int unsigned ca2d_array_from_ui (int unsigned base, size2D_t s, int unsigned arr
     return 0;
 }
 
-int unsigned ca2d_array_to_mpz (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], mpz_t number) {
+int unsigned ca2d_array_to_mpz (int unsigned base, ca2d_size_t s, int unsigned array[s.y][s.x], mpz_t number) {
     mpz_t mul;
     mpz_init (mul);
     mpz_set_ui (mul, 1);
@@ -59,7 +59,7 @@ int unsigned ca2d_array_to_mpz (int unsigned base, size2D_t s, int unsigned arra
     return 0;
 }
 
-int unsigned ca2d_array_from_mpz (int unsigned base, size2D_t s, int unsigned array[s.y][s.x], mpz_t number) {
+int unsigned ca2d_array_from_mpz (int unsigned base, ca2d_size_t s, int unsigned array[s.y][s.x], mpz_t number) {
     mpz_t num;
     mpz_init_set (num, number);
     for (int unsigned y=0; y<s.y; y++) {
@@ -71,8 +71,8 @@ int unsigned ca2d_array_from_mpz (int unsigned base, size2D_t s, int unsigned ar
 }
 
 int unsigned ca2d_array_slice (
-    size2D_t is,
-    size2D_t ob, size2D_t os,
+    ca2d_size_t is,
+    ca2d_size_t ob, ca2d_size_t os,
     int unsigned ia[is.y][is.x], int unsigned oa[os.y][os.x])
 {
     for (int unsigned y=0; y<os.y; y++) {
@@ -84,7 +84,7 @@ int unsigned ca2d_array_slice (
 }
 
 int unsigned ca2d_array_combine_x (
-    size2D_t is0, size2D_t is1,
+    ca2d_size_t is0, ca2d_size_t is1,
     int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is0.y][is1.x+is0.x])
 {
     for (int unsigned y=0; y<is0.y; y++) {
@@ -99,7 +99,7 @@ int unsigned ca2d_array_combine_x (
 }
 
 int unsigned ca2d_array_combine_y (
-    size2D_t is0, size2D_t is1,
+    ca2d_size_t is0, ca2d_size_t is1,
     int unsigned ia0[is0.y][is0.x], int unsigned ia1[is1.y][is1.x], int unsigned oa[is1.y+is0.y][is0.x])
 {
     for (int unsigned x=0; x<is0.x; x++) {

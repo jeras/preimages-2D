@@ -49,9 +49,9 @@
 int main (int argc, char **argv) {
     // configuration
     int unsigned sts;
-    size2D_t     ngb;
+    ca2d_size_t     ngb;
     mpz_t        rule;
-    size2D_t     siz;
+    ca2d_size_t     siz;
     char *filename;
     FILE  file;
 
@@ -133,10 +133,10 @@ int main (int argc, char **argv) {
     int unsigned px [2] [ngb_n];
     int unsigned py [2] [ngb_n];
 
-    size2D_t     sx = {ngb.y, ngb.x-1}; 
+    ca2d_size_t     sx = {ngb.y, ngb.x-1}; 
     int unsigned ax [sx.y] [sx.x];
  
-    size2D_t     sy = {ngb.y-1, ngb.x}; 
+    ca2d_size_t     sy = {ngb.y-1, ngb.x}; 
     int unsigned ay [sy.y] [sy.x];
         
     int unsigned a [ngb.y] [ngb.x];
@@ -145,7 +145,7 @@ int main (int argc, char **argv) {
         for (int unsigned n=0; n<ngb_n; n++) {
             ca2d_array_from_ui (sts, ngb, a, n);
 
-            ca2d_array_slice (ngb, (size2D_t) {y, 0}, sy, a, ay);
+            ca2d_array_slice (ngb, (ca2d_size_t) {y, 0}, sy, a, ay);
             ca2d_array_to_ui (sts, sy, ay, &py [y] [n]);
 
             printf ("pointers i: ");
@@ -159,7 +159,7 @@ int main (int argc, char **argv) {
         for (int unsigned n=0; n<ngb_n; n++) {
             ca2d_array_from_ui (sts, ngb, a, n);
 
-            ca2d_array_slice (ngb, (size2D_t) {0, x}, sx, a, ax);
+            ca2d_array_slice (ngb, (ca2d_size_t) {0, x}, sx, a, ax);
             ca2d_array_to_ui (sts, sx, ax, &px [x] [n]);
 
             printf ("pointers i: ");
@@ -270,8 +270,8 @@ int main (int argc, char **argv) {
 
 
     // test conversion array <-> gmp_t
-    size2D_t tsi = {3,3};
-    size2D_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
+    ca2d_size_t tsi = {3,3};
+    ca2d_size_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
     int unsigned nmi = (size_t) pow (sts, tsi.y*tsi.x);
     int unsigned nmo = (size_t) pow (sts, tso.y*tso.x);
     mpz_t li [nmi];
