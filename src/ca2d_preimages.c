@@ -70,15 +70,8 @@ int main (int argc, char **argv) {
     printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
+    ca2d_rule_print (ca2d);   
 
-    // neighborhood states (sts ** ngb_n)
-    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-
-    // rule table (conversion to base sts)
-    int unsigned tab [ngb_n];
-    ca2d_rule_table (ca2d, tab);
-    ca2d_rule_print (ca2d, tab);   
- 
     // overlap states
     uintca_t ovl = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x - 1);
     printf     ("ovl                 = %lld\n", ovl);
@@ -88,19 +81,13 @@ int main (int argc, char **argv) {
     ca2d_read (filename, siz, ca);
     ca2d_print (siz, ca);
 
-    // counting the possible number of preimages, used to reserve memory
-    mpz_t max;
-    mpz_init (max);
-    mpz_ui_pow_ui (max, ca2d.sts, siz.y * siz.x);
-    gmp_printf ("max                 = %Zi\n", max);
-    size_t btn;
-    btn = mpz_sizeinbase (max, 2);
-    mpz_clear (max);
-    printf     ("btn                 = %zu\n", btn);
 
 
 
-
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    int unsigned tab [ngb_n];
+    ca2d_rule_table (ca2d, tab);
 
     // memory allocation for preimage network
     mpz_t net [2] [2] [siz.y] [siz.x] [ngb_n];

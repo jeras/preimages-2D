@@ -39,31 +39,6 @@ int ca2d_rule_gol () {
     return (0);
 }
 
-int ca2d_rule_print (ca2d_t ca2d, int unsigned tab[(size_t) pow (ca2d.sts, ca2d.ngb.y*ca2d.ngb.x)]) {
-    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
-    printf     ("STATES              = %i\n", ca2d.sts);
-    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ca2d.ngb.x);
-    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ca2d.ngb.y);
-    gmp_printf ("RULE                = %Zi\n", ca2d.rule);
-    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-    printf ("ngb_n = %lld\n", ngb_n);
-    for (int unsigned n=0; n<pow(ca2d.sts, ca2d.ngb.y*ca2d.ngb.x); n++) {
-        // convert table index into neighborhood status 2D array
-        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, n);
-        // populate pointer table
-        printf ("tab [%X] = [", n);
-        for (int unsigned y=0; y<ca2d.ngb.y; y++) {
-            printf ("%s[", y ? "," : "");
-            for (int unsigned x=0; x<ca2d.ngb.x; x++) {
-                printf ("%s%u", x ? "," : "", a[y][x]);
-            }
-            printf ("]");
-        }
-        printf ("] = %u\n", tab[n]);
-    }
-    return (0);
-}
-
 int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[(size_t) pow (ca2d.sts, ca2d.ngb.y*ca2d.ngb.x)]) {
     // neighborhood area
     // check if it is within allowed values, for example less then 9==3*3
@@ -95,6 +70,33 @@ int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[(size_t) pow (ca2d.sts, ca2d.
     }
     mpz_clear (rule_q);
  
+    return (0);
+}
+
+int ca2d_rule_print (ca2d_t ca2d) {
+    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
+    printf     ("STATES              = %i\n", ca2d.sts);
+    printf     ("NEIGHBORHOOD_SIZE_X = %i\n", ca2d.ngb.x);
+    printf     ("NEIGHBORHOOD_SIZE_Y = %i\n", ca2d.ngb.y);
+    gmp_printf ("RULE                = %Zi\n", ca2d.rule);
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    printf ("ngb_n = %lld\n", ngb_n);
+    int unsigned tab[ngb_n];
+    ca2d_rule_table (ca2d, tab);
+    for (int unsigned n=0; n<ngb_n; n++) {
+        // convert table index into neighborhood status 2D array
+        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, n);
+        // print rule table
+        printf ("tab [%X] = [", n);
+        for (int unsigned y=0; y<ca2d.ngb.y; y++) {
+            printf ("%s[", y ? "," : "");
+            for (int unsigned x=0; x<ca2d.ngb.x; x++) {
+                printf ("%s%u", x ? "," : "", a[y][x]);
+            }
+            printf ("]");
+        }
+        printf ("] = %u\n", tab[n]);
+    }
     return (0);
 }
 
