@@ -264,22 +264,27 @@ int main (int argc, char **argv) {
                     for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
                     for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
                     // construct temporary result array/structure
+                    printf ("%sy%d%sx%d: ", dy?"-":"+", y, dx?"-":"+", x);
                     for (int unsigned n=0; n<ngb_n; n++) {
                         if (!(dy ? y==(siz.y-1) : y==0)) {
                             mpz_mul (w, net [dy] [0] [ny] [x] [n], net [dy] [1] [ny] [x] [n]);
-                            mpz_add (wy [py[dy][n]], wy [py[dy][n]], w);
+                            mpz_add (wy [py[1-dy][n]], wy [py[1-dy][n]], w);
                         }
                         if (!(dx ? x==(siz.x-1) : x==0)) {
-                            mpz_add (wx [px[!dx][n]], wx [px[!dx][n]], net [dy] [dx] [y] [nx] [n]);
+                            mpz_add (wx [px[1-dx][n]], wx [px[1-dx][n]], net [dy] [dx] [y] [nx] [n]);
                         }
-                        gmp_printf ("n%X(%Zi,%Zi) ", n, wy [py[dy][n]], wx [px[dx][n]]);
+//                        gmp_printf ("n%X(%Zi,%Zi,%x) ", n, wy [py[dy][n]], wx [px[dx][n]], py[dy][n]);
+                    }
+                    for (int unsigned o=0; o<ovl_y; o++) {
+                        gmp_printf ("n%X(%Zi,%Zi) ", o, wy [o], wx [o]);
                     }
                     printf ("\n");
+                    // compute new weight from surrounding weights
                     for (int unsigned n=0; n<ngb_n; n++) {
                         if (tab [n] == ca [y] [x]) {
                             mpz_mul (net [dy] [dx] [y] [x] [n], wy [py[dy][n]], wx [px[dx][n]]);
                         }
-                        // TODO: when a proper algorithm for computing weights is foung, remove this line
+                        // TODO: when a proper algorithm for computing weights is found, remove this line
                         if (mpz_sgn (net [dy] [dx] [y] [x] [n])) {
                             mpz_set_ui (net [dy] [dx] [y] [x] [n], 1);
                         }
@@ -338,7 +343,7 @@ int main (int argc, char **argv) {
 
 
     // test conversion array <-> gmp_t
-    size2D_t tsi = {4,4};
+    size2D_t tsi = {3,3};
     size2D_t tso = {tsi.y-(ngb.y-1), tsi.x-(ngb.x-1)};
     int unsigned nmi = (size_t) pow (sts, tsi.y*tsi.x);
     int unsigned nmo = (size_t) pow (sts, tso.y*tso.x);
