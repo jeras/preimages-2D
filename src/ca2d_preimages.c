@@ -82,12 +82,8 @@ int main (int argc, char **argv) {
     ca2d_read (filename, siz, ca);
     ca2d_print (siz, ca);
 
-    // create network
-    ca2d_network (ca2d, siz, ca);
-
-
     // test conversion array <-> gmp_t
-    ca2d_size_t tsi = {3,3};
+    ca2d_size_t tsi = {4,4};
     ca2d_size_t tso = {tsi.y-(ca2d.ngb.y-1), tsi.x-(ca2d.ngb.x-1)};
     int unsigned nmi = (size_t) pow (ca2d.sts, tsi.y*tsi.x);
     int unsigned nmo = (size_t) pow (ca2d.sts, tso.y*tso.x);
@@ -111,6 +107,17 @@ int main (int argc, char **argv) {
     }
     for (int unsigned i=0; i<nmo; i++) {
         gmp_printf ("%3u --> %3u%s", i, lo[i], (i+1)%8 ? " " : "\n");
+    }
+
+    mpz_t sum [nmo];
+    for (int unsigned i=0; i<nmo; i++) {
+        mpz_set_ui (num, i);
+        ca2d_array_from_mpz (ca2d.sts, tso, tao, num);
+        mpz_init (sum[i]);
+        ca2d_network (ca2d, tso, tao, sum[i]);
+    }
+    for (int unsigned i=0; i<nmo; i++) {
+        gmp_printf ("%3u --> %Zi%s", i, sum[i], (i+1)%8 ? " " : "\n");
     }
 
     return (0);
