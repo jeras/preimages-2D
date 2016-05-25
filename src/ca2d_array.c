@@ -72,12 +72,12 @@ int unsigned ca2d_array_from_mpz (int unsigned base, size2D_t s, int unsigned ar
 
 int unsigned ca2d_array_slice (
     size2D_t is,
-    size2D_t os0, size2D_t os1,
-    int unsigned ia[is.y][is.x], int unsigned oa[os1.y-os0.y][os1.x-os0.x])
+    size2D_t ob, size2D_t os,
+    int unsigned ia[is.y][is.x], int unsigned oa[os.y][os.x])
 {
-    for (int unsigned y=0; y<os1.y-os0.y; y++) {
-        for (int unsigned x=0; x<os1.x-os0.x; x++) {
-            oa[y][x] = ia[os0.y+y][os0.x+x];
+    for (int unsigned y=0; y<os.y; y++) {
+        for (int unsigned x=0; x<os.x; x++) {
+            oa[y][x] = ia[ob.y+y][ob.x+x];
         }
     }
     return 0;
