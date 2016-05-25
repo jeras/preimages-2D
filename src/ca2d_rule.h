@@ -12,5 +12,6 @@
 int ca2d_rule_gol ();
 
 int ca2d_rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]);
+int ca2d_rule_table (int unsigned sts, size2D_t ngb, mpz_t rule, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]);
 
 #endif

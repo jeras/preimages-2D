@@ -43,6 +43,8 @@ int ca2d_rule_gol () {
 
 int ca2d_rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
     int unsigned a [ngb.y] [ngb.x];
+    uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
+    printf ("ngb_n = %lld\n", ngb_n);
     for (int unsigned n=0; n<pow(sts, ngb.y*ngb.x); n++) {
         // convert table index into neighborhood status 2D array
         ca2d_array_from_ui (sts, ngb, a, n);
@@ -60,4 +62,37 @@ int ca2d_rule_print (int unsigned sts, size2D_t ngb, int unsigned tab[(size_t) p
     return (0);
 }
 
+int ca2d_rule_table (int unsigned sts, size2D_t ngb, mpz_t rule, int unsigned tab[(size_t) pow (sts, ngb.y*ngb.x)]) {
+    // neighborhood area
+    // check if it is within allowed values, for example less then 9==3*3
+    if ((ngb.x == 0) || (ngb.y == 0) || ((ngb.y * ngb.x) > 9)) {
+        fprintf (stderr, "ERROR: neighborhood area %u is outside range [1:9].\n", ngb.y * ngb.x);
+        return (1);
+    }
+
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
+
+    // check if rule is within range = sts ** (sts ** ngb_n)
+    mpz_t range;
+    mpz_init (range);
+    mpz_ui_pow_ui (range, sts, ngb_n);
+    gmp_printf ("range               = %Zi\n", range);
+    if (mpz_cmp (rule, range) > 0) {
+        fprintf (stderr, "ERROR: rule is outside of range\n");
+        return (1);
+    }
+    mpz_clear (range);
+
+    // rule table (conversion to base sts)
+    mpz_t rule_q;
+    mpz_init_set (rule_q, rule);
+    for (int unsigned i=0; i<ngb_n; i++) {
+        // populate transition function
+        tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, sts);
+    }
+    mpz_clear (rule_q);
+ 
+    return (0);
+}
 

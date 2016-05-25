@@ -77,38 +77,13 @@ int main (int argc, char **argv) {
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
 
-    // neighborhood area
-    // check if it is within allowed values, for example less then 9==3*3
-    if ((ngb.x == 0) || (ngb.y == 0) || ((ngb.y * ngb.x) > 9)) {
-        fprintf (stderr, "ERROR: neighborhood area %u is outside range [1:9].\n", ngb.y * ngb.x);
-        return (1);
-    }
-
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (sts, ngb.y * ngb.x);
-    printf     ("ngb_n               = %lld\n", ngb_n);
-
-    // check if rule is within range = sts ** (sts ** ngb_n)
-    mpz_t range;
-    mpz_init (range);
-    mpz_ui_pow_ui (range, sts, ngb_n);
-    gmp_printf ("range               = %Zi\n", range);
-    if (mpz_cmp (rule, range) > 0) {
-        fprintf (stderr, "ERROR: rule is outside of range\n");
-        return (1);
-    }
-    mpz_clear (range);
 
     // rule table (conversion to base sts)
     int unsigned tab [ngb_n];
-    mpz_t rule_q;
-    mpz_init_set (rule_q, rule);
-    for (int unsigned i=0; i<ngb_n; i++) {
-        // populate transition function
-        tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, sts);
-    }
-    mpz_clear (rule_q);
-    ca2d_rule_print(sts, ngb, tab);   
+    ca2d_rule_table (sts, ngb, rule, tab);
+    ca2d_rule_print (sts, ngb, tab);   
  
     // overlap states
     uintca_t ovl = pow (sts, ngb.y * ngb.x - 1);
