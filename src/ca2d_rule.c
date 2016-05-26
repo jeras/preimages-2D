@@ -16,26 +16,26 @@
 // function for transforming the Game of Life rule description into a number
 int ca2d_rule_gol () {
     int unsigned len = 1<<9;
+    int unsigned sum, out;
     mpz_t rule;
-    mpz_init_set_ui (rule, 0);
+    mpz_init (rule);
     // loop through the rule table
-    for (int unsigned i=0; i<len; i++) {
+    for (int i=len-1; i>=0; i--) {
         // calculate neighborhood sum
-        int unsigned sum = 0;
+        sum = 0;
         for (int unsigned b=0; b<9; b++) {
-            sum += (i >> b) & 0x1;
+            sum += ((i & 0b111101111) >> b) & 0x1;
         }
         // calculate GoL transition function
-        int unsigned out;
         if      (sum == 3)  out = 1;
-        else if (sum == 2)  out = (i >> 4) % 0x1;
+        else if (sum == 2)  out = (i & 0b000010000) >> 4;
         else                out = 0;
         // add rule table element to rule number
         mpz_mul_ui (rule, rule, 2);
         mpz_add_ui (rule, rule, out);
     }
     // return rule
-    gmp_printf ("RULE GoL             = %Zi\n", rule);
+    gmp_printf ("RULE GoL = 0x%ZX\n", rule);
     return (0);
 }
 
