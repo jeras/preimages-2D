@@ -83,6 +83,10 @@ int main (int argc, char **argv) {
     ca2d_print (siz, ca);
     printf ("\n");
 
+    int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)];
+    ca2d_network       (ca2d, siz, ca, res);
+    ca2d_network_print (ca2d, siz,     res);
+
     return (0);
 }
 

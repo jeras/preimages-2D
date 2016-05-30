@@ -41,7 +41,26 @@
 #include "ca2d_array.h"
 #include "ca2d_configuration.h"
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t sum) {
+int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    printf ("[");
+    for (int unsigned y=0; y<siz.y; y++) {
+        printf ("[");
+        for (int unsigned x=0; x<siz.x; x++) {
+            printf ("[");
+            for (int unsigned n=0; n<ngb_n; n++) {
+                printf ("%u", res[y][x][n]);
+            }
+            printf ("]");
+	    printf ("%s", x != (siz.x-1) ? "," : "]\n");
+        }
+        printf ("%s", y != (siz.y-1) ? "," : "]\n");
+    }
+    return (0);
+}
+
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
     int unsigned tab [ngb_n];
@@ -86,13 +105,16 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 
             ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {y, 0}, sy, a, ay);
             ca2d_array_to_ui (ca2d.sts, sy, ay, &py [y] [n]);
-
-//            printf ("pointers i: ");
-//            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
-//            ca2d_array_print (sy, ay); printf (" -> py[%u][%X] = %u | ", y, n, py [y] [n]);
-//            printf ("\n");
+#ifdef CA2D_DEBUG
+            printf ("pointers i: ");
+            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
+            ca2d_array_print (sy, ay); printf (" -> py[%u][%X] = %u | ", y, n, py [y] [n]);
+            printf ("\n");
+#endif
         }
-//        printf ("\n");
+#ifdef CA2D_DEBUG
+        printf ("\n");
+#endif
     }
     for (int unsigned x=0; x<2; x++) {
         for (int unsigned n=0; n<ngb_n; n++) {
@@ -101,12 +123,16 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, x}, sx, a, ax);
             ca2d_array_to_ui (ca2d.sts, sx, ax, &px [x] [n]);
 
-//            printf ("pointers i: ");
-//            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
-//            ca2d_array_print (sx, ax); printf (" -> px[%u][%X] = %u | ", x, n, px [x] [n]);
-//            printf ("\n");
+#ifdef CA2D_DEBUG
+            printf ("pointers i: ");
+            ca2d_array_print (ca2d.ngb, a); printf (" :: ");
+            ca2d_array_print (sx, ax); printf (" -> px[%u][%X] = %u | ", x, n, px [x] [n]);
+            printf ("\n");
+#endif
         }
-//        printf ("\n");
+#ifdef CA2D_DEBUG
+        printf ("\n");
+#endif
     }
 
     // compute network weights
@@ -129,8 +155,10 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
                     // initialize temporary result array/structure
                     for (int unsigned o=0; o<ovl_y; o++)  mpz_set_ui (wy[o], dy ? y==(siz.y-1) : y==0);
                     for (int unsigned o=0; o<ovl_x; o++)  mpz_set_ui (wx[o], dx ? x==(siz.x-1) : x==0);
+#ifdef CA2D_DEBUG
                     // construct temporary result array/structure
-//                    printf ("%sy%d%sx%d: ", dy?"-":"+", y, dx?"-":"+", x);
+                    printf ("%sy%d%sx%d: ", dy?"-":"+", y, dx?"-":"+", x);
+#endif
                     for (int unsigned n=0; n<ngb_n; n++) {
                         if (!(dy ? y==(siz.y-1) : y==0)) {
                             mpz_mul (w, net [dy] [0] [ny] [x] [n], net [dy] [1] [ny] [x] [n]);
@@ -139,12 +167,16 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
                         if (!(dx ? x==(siz.x-1) : x==0)) {
                             mpz_add (wx [px[1-dx][n]], wx [px[1-dx][n]], net [dy] [dx] [y] [nx] [n]);
                         }
-//                        gmp_printf ("n%X(%Zi,%Zi,%x) ", n, wy [py[dy][n]], wx [px[dx][n]], py[dy][n]);
+#ifdef CA2D_DEBUG
+                        gmp_printf ("n%X(%Zi,%Zi,%x) ", n, wy [py[dy][n]], wx [px[dx][n]], py[dy][n]);
+#endif
                     }
+#ifdef CA2D_DEBUG
                     for (int unsigned o=0; o<ovl_y; o++) {
-//                        gmp_printf ("n%X(%Zi,%Zi) ", o, wy [o], wx [o]);
+                        gmp_printf ("n%X(%Zi,%Zi) ", o, wy [o], wx [o]);
                     }
-//                    printf ("\n");
+                    printf ("\n");
+#endif
                     // compute new weight from surrounding weights
                     for (int unsigned n=0; n<ngb_n; n++) {
                         if (tab [n] == ca [y] [x]) {
@@ -184,30 +216,29 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         }
         printf ("\n");
     }
-#endif
 
-//    // printout preimage network weights
-//    printf ("network overview\n");
-//    for (int unsigned y=0; y<siz.y; y++) {
-//        for (int unsigned x=0; x<siz.x; x++) {
-//            mpz_t w;
-//            mpz_init (w);
-//            for (int unsigned n=0; n<ngb_n; n++) {
-//                mpz_t wn;
-//                mpz_init (wn);
-//                mpz_set_ui (wn, 1);
-//                for (int unsigned dy=0; dy<2; dy++) {
-//                    for (int unsigned dx=0; dx<2; dx++) {
-//                        mpz_mul (wn, wn, net [dy] [dx] [y] [x] [n]);
-//                    }
-//                }
-//                mpz_add (w, w, wn);
-//            }
-//            gmp_printf ("%s%Zi", x ? "," : "", w);
-//        }
-//        printf ("\n");
-//    }
-//    printf ("\n");
+    // printout preimage network weights
+    printf ("network overview\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            mpz_t w;
+            mpz_init (w);
+            for (int unsigned n=0; n<ngb_n; n++) {
+                mpz_t wn;
+                mpz_init (wn);
+                mpz_set_ui (wn, 1);
+                for (int unsigned dy=0; dy<2; dy++) {
+                    for (int unsigned dx=0; dx<2; dx++) {
+                        mpz_mul (wn, wn, net [dy] [dx] [y] [x] [n]);
+                    }
+                }
+                mpz_add (w, w, wn);
+            }
+            gmp_printf ("%s%Zi", x ? "," : "", w);
+        }
+        printf ("\n");
+    }
+    printf ("\n");
 
     // printout preimage network weights
     mpz_t wn;
@@ -221,6 +252,24 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             }
         }
         mpz_add (sum, sum, wn);
+    }
+#endif
+
+    // printout preimage network weights
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            for (int unsigned n=0; n<ngb_n; n++) {
+                mpz_t wn;
+                mpz_init (wn);
+                mpz_set_ui (wn, 1);
+                for (int unsigned dy=0; dy<2; dy++) {
+                    for (int unsigned dx=0; dx<2; dx++) {
+                        mpz_mul (wn, wn, net [dy] [dx] [y] [x] [n]);
+                    }
+                }
+                res [y][x][n] = mpz_sgn (wn);
+            }
+        }
     }
 
     return (0);
