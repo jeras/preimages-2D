@@ -60,42 +60,18 @@ int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+int ca2d_network_pointers (ca2d_t ca2d,
+    int unsigned py [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
+    int unsigned px [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]
+) {
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-    int unsigned tab [ngb_n];
-    ca2d_rule_table (ca2d, tab);
 
-    // memory allocation for preimage network
-    mpz_t net [2] [2] [siz.y] [siz.x] [ngb_n];
-
-    // initialize array
-    for (int unsigned dy=0; dy<2; dy++) {
-        for (int unsigned dx=0; dx<2; dx++) {
-            for (int unsigned y=0; y<siz.y; y++) {
-                for (int unsigned x=0; x<siz.x; x++) {
-                    for (int unsigned n=0; n<ngb_n; n++) {
-                        // TODO: for now only a unit weight edge is supported unsigned int *
-                        mpz_init (net [dy] [dx] [y] [x] [n]);
-                    }
-                }
-            }
-        }
-    }
-
-    // temporary structure
-    const int unsigned ovl_x = pow (ca2d.sts, (ca2d.ngb.x-1)*(ca2d.ngb.y  ));
-    const int unsigned ovl_y = pow (ca2d.sts, (ca2d.ngb.x  )*(ca2d.ngb.y-1));
-
-    // pointers to X/Y/Z(xy) dimension edges
-    int unsigned px [2] [ngb_n];
-    int unsigned py [2] [ngb_n];
-
-    ca2d_size_t     sx = {ca2d.ngb.y, ca2d.ngb.x-1}; 
-    int unsigned ax [sx.y] [sx.x];
- 
-    ca2d_size_t     sy = {ca2d.ngb.y-1, ca2d.ngb.x}; 
+    ca2d_size_t  sy = {ca2d.ngb.y-1, ca2d.ngb.x}; 
     int unsigned ay [sy.y] [sy.x];
+ 
+    ca2d_size_t  sx = {ca2d.ngb.y, ca2d.ngb.x-1}; 
+    int unsigned ax [sx.y] [sx.x];
         
     int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
         
@@ -134,6 +110,41 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         printf ("\n");
 #endif
     }
+    return (0);
+}
+
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    int unsigned tab [ngb_n];
+    ca2d_rule_table (ca2d, tab);
+
+    // memory allocation for preimage network
+    mpz_t net [2] [2] [siz.y] [siz.x] [ngb_n];
+
+    // initialize array
+    for (int unsigned dy=0; dy<2; dy++) {
+        for (int unsigned dx=0; dx<2; dx++) {
+            for (int unsigned y=0; y<siz.y; y++) {
+                for (int unsigned x=0; x<siz.x; x++) {
+                    for (int unsigned n=0; n<ngb_n; n++) {
+                        // TODO: for now only a unit weight edge is supported unsigned int *
+                        mpz_init (net [dy] [dx] [y] [x] [n]);
+                    }
+                }
+            }
+        }
+    }
+
+    // pointers to X/Y dimension edges
+    int unsigned py [2] [ngb_n];
+    int unsigned px [2] [ngb_n];
+
+    ca2d_network_pointers (ca2d, py, px);
+
+    // overlay sizes
+    const int unsigned ovl_x = pow (ca2d.sts, (ca2d.ngb.x-1)*(ca2d.ngb.y  ));
+    const int unsigned ovl_y = pow (ca2d.sts, (ca2d.ngb.x  )*(ca2d.ngb.y-1));
 
     // compute network weights
     // weights for X/Y/Z dimension edges
@@ -146,8 +157,6 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 
     for (int unsigned dy=0; dy<2; dy++) {
         for (int y=dy?siz.y-1:0; dy?(y>=0):(y<siz.y); y=dy?y-1:y+1) {
-//    for (int unsigned dy=0; dy<1; dy++) {
-//        for (int y=dy?siz.y-1:0; dy?(y>=0):(y<1); y=dy?y-1:y+1) {
             for (int unsigned dx=0; dx<2; dx++) {
                 for (int x=dx?siz.x-1:0; dx?(x>=0):(x<siz.x); x=dx?x-1:x+1) {
                     int ny = dy ? y+1 : y-1;
@@ -274,3 +283,48 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 
     return (0);
 }
+
+int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
+    int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
+    int unsigned ca [siz.y+(ca2d.ngb.y-1)] [siz.x+(ca2d.ngb.x-1)]
+) {
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+
+    int unsigned hit [siz.y] [siz.x] [ngb_n];
+
+    // pointers to X/Y dimension edges
+    int unsigned py [2] [ngb_n];
+    int unsigned px [2] [ngb_n];
+
+    ca2d_network_pointers (ca2d, py, px);
+
+    // overlay sizes
+    const int unsigned ovl_x = pow (ca2d.sts, (ca2d.ngb.x-1)*(ca2d.ngb.y  ));
+    const int unsigned ovl_y = pow (ca2d.sts, (ca2d.ngb.x  )*(ca2d.ngb.y-1));
+
+    int unsigned wy [ovl_y];
+    int unsigned wx [ovl_x];
+    int unsigned done;
+
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
+            for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
+            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] = y ? res [y-1] [x] [n] : 0x1;
+            for (int unsigned n=0; n<ngb_n; n++)  wy [px[1][n]] = x ? res [y] [x-1] [n] : 0x1;
+
+            done = 0;
+            for (int unsigned n=0; n<ngb_n; n++) {
+                if (!done && res [y] [x] && wy [py[0][n]] && wx [px[0][n]]) {
+                    done = 1;
+                    hit [y] [x] [n] = 1;
+                } else {
+                    hit [y] [x] [n] = 0;
+                }
+            }
+        }
+    }
+    return (0);
+}
+
