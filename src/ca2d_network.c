@@ -291,7 +291,7 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
 
-    int unsigned hit [siz.y] [siz.x] [ngb_n];
+    int unsigned hit [siz.y] [siz.x];
 
     // pointers to X/Y dimension edges
     int unsigned py [2] [ngb_n];
@@ -307,24 +307,55 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
     int unsigned wx [ovl_x];
     int unsigned done;
 
+    // mark network nodes
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
             for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
             for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
-            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] = y ? res [y-1] [x] [n] : 0x1;
-            for (int unsigned n=0; n<ngb_n; n++)  wy [px[1][n]] = x ? res [y] [x-1] [n] : 0x1;
+            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] = y ? hit [y-1] [x] == n : 0x1;
+            for (int unsigned n=0; n<ngb_n; n++)  wy [px[1][n]] = x ? hit [y] [x-1] == n : 0x1;
 
             done = 0;
             for (int unsigned n=0; n<ngb_n; n++) {
                 if (!done && res [y] [x] && wy [py[0][n]] && wx [px[0][n]]) {
                     done = 1;
-                    hit [y] [x] [n] = 1;
-                } else {
-                    hit [y] [x] [n] = 0;
+                    hit [y] [x] = n;
                 }
             }
         }
     }
+
+    // construct preimage from marked network nodes
+    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
+    // buttom-left area
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [x]);
+            ca [y] [x] = a[0][0];
+        }
+    }
+    // right border
+    for (int unsigned y=0; y<siz.y; y++) {
+        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [siz.x-1]);
+        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
+            ca [y] [x+siz.x] = a[0][1+x];
+        }
+    }
+    // top border
+    for (int unsigned x=0; x<siz.x; x++) {
+        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [x]);
+        for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
+            ca [y+siz.y] [x] = a[1+y][0];
+        }
+    }
+    // top-right corner
+    ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [siz.x-1]);
+    for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
+        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
+            ca [y+siz.y] [x+siz.x] = a[1+y][1+x];
+        }
+    }
+
     return (0);
 }
 

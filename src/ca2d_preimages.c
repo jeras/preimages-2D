@@ -83,9 +83,23 @@ int main (int argc, char **argv) {
     ca2d_print (siz, ca);
     printf ("\n");
 
+    // calculate network
     int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)];
     ca2d_network       (ca2d, siz, ca, res);
     ca2d_network_print (ca2d, siz,     res);
+
+    // calculate preimage from network
+    ca2d_size_t sizp = {siz.y+(ca2d.ngb.y-1), siz.x+(ca2d.ngb.x-1)};
+    int unsigned preimage [sizp.y] [sizp.x];
+    ca2d_network_preimage (ca2d, siz, res, preimage);
+
+    printf ("PREIMAGE:\n");
+    ca2d_print (sizp, preimage);
+    printf ("\n");
+
+    printf ("FORWARD:\n");
+    ca2d_forward (ca2d, sizp, preimage, ca);
+    ca2d_print (siz, ca);
 
     return (0);
 }
