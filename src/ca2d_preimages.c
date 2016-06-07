@@ -84,9 +84,21 @@ int main (int argc, char **argv) {
     printf ("\n");
 
     // calculate network
-    int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)];
+    int unsigned ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    int unsigned res [siz.y] [siz.x] [ngb_n];
     ca2d_network       (ca2d, siz, ca, res);
     ca2d_network_print (ca2d, siz,     res);
+    // check if there is a preimage
+    int unsigned cnt = 0;
+    for (int unsigned n=0; n<ngb_n; n++) {
+         cnt += res [0] [0] [n];
+    }
+    if (!cnt) {
+         printf ("There are no preimages\n");
+         return (0);
+    } else {
+         printf ("CNT = %u\n", cnt);
+    }
 
     // calculate preimage from network
     ca2d_size_t sizp = {siz.y+(ca2d.ngb.y-1), siz.x+(ca2d.ngb.x-1)};
