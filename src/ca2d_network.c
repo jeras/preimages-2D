@@ -308,22 +308,52 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
     int unsigned done;
 
     // mark network nodes
+    printf ("HIT:\n");
     for (int unsigned y=0; y<siz.y; y++) {
-        for (int unsigned x=0; x<siz.x; x++) {
+        // clean pass
+        for (int x=siz.x-1; x>=0; x--) {
             for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
             for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
-            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] = y ? hit [y-1] [x] == n : 0x1;
-            for (int unsigned n=0; n<ngb_n; n++)  wy [px[1][n]] = x ? hit [y] [x-1] == n : 0x1;
-
+            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] |=  y           ? (hit [y-1] [x] == n) : 0x1;
+            for (int unsigned n=0; n<ngb_n; n++)  wx [px[0][n]] |= (x!=siz.x-1) ? (res [y] [x+1] [n])  : 0x1;
+            for (int unsigned o=0; o<ovl_x; o++) {
+                 printf ("-wyx[%x,%x] ", wy [o], wx [o]);
+            }
+            for (int unsigned n=0; n<ngb_n; n++) {
+                res [y][x][n] = res[y][x][n] && wy [py[0][n]] && wx [px[1][n]];
+                printf ("r[%x]=%x ", n, res[y][x][n]);
+            }
+//            printf ("%x ", hit [y] [x]);
+            printf ("\n");
+        }
+        printf ("\n");
+        // select pass
+        for (int x=0; x<siz.x; x++) {
+            for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
+            for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
+            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] |= y ? (hit [y-1] [x] == n) : 0x1;
+            for (int unsigned n=0; n<ngb_n; n++)  wx [px[1][n]] |= x ? (hit [y] [x-1] == n) : 0x1;
+            for (int unsigned o=0; o<ovl_x; o++) {
+                 printf ("+wyx[%x,%x] ", wy [o], wx [o]);
+            }
             done = 0;
             for (int unsigned n=0; n<ngb_n; n++) {
-                if (!done && res [y] [x] && wy [py[0][n]] && wx [px[0][n]]) {
+                if (!done && res[y][x][n] && wy [py[0][n]] && wx [px[0][n]]) {
                     done = 1;
                     hit [y] [x] = n;
                 }
+                printf ("r[%x]=%x ", n, res[y][x][n]);
             }
+            if (!done) {
+                printf ("ERROR, no preimages\n");
+                return (1);
+            }
+            printf ("%x ", hit [y] [x]);
+            printf ("\n");
         }
+        printf ("\n");
     }
+    printf ("\n");
 
     // construct preimage from marked network nodes
     int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
