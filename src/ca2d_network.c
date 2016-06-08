@@ -41,6 +41,8 @@
 #include "ca2d_array.h"
 #include "ca2d_configuration.h"
 
+#define CA2D_DEBUG
+
 int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
@@ -68,22 +70,26 @@ int ca2d_network_pointers (ca2d_t ca2d, int unsigned p [2] [2] [(size_t) pow (ca
     int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
  
 #ifdef CA2D_DEBUG
-    printf ("\n");
+    printf ("pointers:\n");
 #endif
     for (int unsigned c=0; c<ngb_c; c++) {
-        ca2d_array_from_ui (ca2d.sts, sc, a, c);
+        ca2d_array_from_ui (ca2d.sts, sc, ac, c);
+#ifdef CA2D_DEBUG
+        ca2d_array_print (sc, ac);
+        printf (" :: ");
+#endif
         for (int unsigned dy=0; dy<2; dy++) {
             for (int unsigned dx=0; dx<2; dx++) {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {dy, dx}, (ca2d_size_t) {sc.y-dy, sc.x-dx}, ac, a);
+                ca2d_array_slice (sc, (ca2d_size_t) {dy, dx}, ca2d.ngb, ac, a);
                 ca2d_array_to_ui (ca2d.sts, ca2d.ngb, a, &p [dy] [dx] [c]);
 #ifdef CA2D_DEBUG
-                printf ("pointers i: ");
-                ca2d_array_print (ca2d.ngb, a); printf (" :: ");
-                ca2d_array_print (sy, ay); printf (" -> p[%u][%u][%u] = %u | ", dy, dx, c, p [dy] [dx] [c]);
-                printf ("\n");
+                ca2d_array_print (ca2d.ngb, a); printf (" -> p[%u][%u][%3u] = %2u | ", dy, dx, c, p [dy] [dx] [c]);
 #endif
             }
         }
+#ifdef CA2D_DEBUG
+        printf ("\n");
+#endif
     }
 #ifdef CA2D_DEBUG
     printf ("\n");
@@ -202,6 +208,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     printf ("\n");
 
     // printout preimage network weights
+    mpz_t sum;
     mpz_t wn;
     mpz_init (wn);
     mpz_set_ui (sum, 0);
