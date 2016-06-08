@@ -41,8 +41,6 @@
 #include "ca2d_array.h"
 #include "ca2d_configuration.h"
 
-#define CA2D_DEBUG
-
 int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     // neighborhood states (sts ** ngb_n)
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
@@ -97,6 +95,8 @@ int ca2d_network_pointers (ca2d_t ca2d, int unsigned p [2] [2] [(size_t) pow (ca
     return (0);
 }
 
+#define CA2D_DEBUG
+
 int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     // neighborhood states (sts ** ngb_n)
     const int unsigned ngb_n  = pow (ca2d.sts,  ca2d.ngb.y   * ca2d.ngb.x   );
@@ -130,29 +130,36 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
                         mpz_init (net [dy] [dx] [y] [x] [n]);
                     }
                     for (int unsigned c=0; c<ngb_c; c++) {
-                        int unsigned wx;
+                        int unsigned w0;
                         int unsigned wy;
+                        int unsigned wx;
                         int unsigned wz;
                         int unsigned p0 = p [1-dy] [1-dx] [c];
-                        int unsigned px = p [1-dy] [  dx] [c];
                         int unsigned py = p [  dy] [1-dx] [c];
+                        int unsigned px = p [1-dy] [  dx] [c];
                         int unsigned pz = p [  dy] [  dx] [c];
-                        if (((nx<0) || (nx>=siz.x)) || ((ny<0) || (ny>=siz.y))) {
-                            wz = 1;
+                        w0 = tab [p0] == ca [y] [x];
+                        if ((ny<0) || (ny>=siz.y)) {
+                            wy = 1;
                         } else {
-                            wz = mpz_sgn (net [dy] [0] [ny] [nx] [pz])  &&  mpz_sgn (net [dy] [1] [ny] [nx] [pz]);
+                            wy = mpz_sgn (net [dy] [0] [ny] [x] [py])  &&  mpz_sgn (net [dy] [1] [ny] [x] [py]);
                         }
                         if ((nx<0) || (nx>=siz.x)) {
                             wx = 1;
                         } else {
                             wx = mpz_sgn (net [dy] [dx] [y] [nx] [px]);
                         }
-                        if ((ny<0) || (ny>=siz.y)) {
-                            wy = 1;
+                        if (((nx<0) || (nx>=siz.x)) || ((ny<0) || (ny>=siz.y))) {
+                            wz = 1;
                         } else {
-                            wy = mpz_sgn (net [dy] [0] [ny] [x] [py])  &&  mpz_sgn (net [dy] [1] [ny] [x] [py]);
+                            wz = mpz_sgn (net [dy] [0] [ny] [nx] [pz])  &&  mpz_sgn (net [dy] [1] [ny] [nx] [pz]);
                         }
-                        mpz_set_ui (net [dy] [dx] [y] [x] [p0] , mpz_sgn (net [dy] [dx] [y] [x] [p0]) || ((tab [p0] == ca [y] [x]) && wz && wz && wx));
+                        mpz_set_ui (net [dy] [dx] [y] [x] [p0] , mpz_sgn (net [dy] [dx] [y] [x] [p0]) || (w0 && wy && wx && wz));
+#ifdef CA2D_DEBUG
+                        if (dy==dx==0 && x==0 && y==1) {
+//                            gmp_printf ("c=%3u", c);
+                        }
+#endif
                     }
                 }
             }
@@ -207,23 +214,10 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     }
     printf ("\n");
 
-    // printout preimage network weights
-    mpz_t sum;
-    mpz_t wn;
-    mpz_init (wn);
-    mpz_set_ui (sum, 0);
-    for (int unsigned n=0; n<ngb_n; n++) {
-        mpz_set_ui (wn, 1);
-        for (int unsigned dy=0; dy<2; dy++) {
-            for (int unsigned dx=0; dx<2; dx++) {
-                mpz_mul (wn, wn, net [dy] [dx] [siz.y-1] [siz.x-1] [n]);
-            }
-        }
-        mpz_add (sum, sum, wn);
-    }
 #endif
 
     // printout preimage network weights
+    printf ("network weights\n");
     for (int unsigned y=0; y<siz.y; y++) {
         for (int unsigned x=0; x<siz.x; x++) {
             for (int unsigned n=0; n<ngb_n; n++) {
@@ -243,108 +237,93 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     return (0);
 }
 
-//int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
-//    int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
-//    int unsigned ca [siz.y+(ca2d.ngb.y-1)] [siz.x+(ca2d.ngb.x-1)]
-//) {
-//    // neighborhood states (sts ** ngb_n)
-//    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-//
-//    int unsigned hit [siz.y] [siz.x];
-//
-//    // pointers to X/Y dimension edges
-//    int unsigned py [2] [ngb_n];
-//    int unsigned px [2] [ngb_n];
-//
-//    ca2d_network_pointers (ca2d, py, px);
-//
-//    // overlay sizes
-//    const int unsigned ovl_x = pow (ca2d.sts, (ca2d.ngb.x-1)*(ca2d.ngb.y  ));
-//    const int unsigned ovl_y = pow (ca2d.sts, (ca2d.ngb.x  )*(ca2d.ngb.y-1));
-//
-//    int unsigned wy [ovl_y];
-//    int unsigned wx [ovl_x];
-//    int unsigned done;
-//
-//    // mark network nodes
-//    printf ("HIT:\n");
-//    for (int unsigned y=0; y<siz.y; y++) {
-//        // clean pass
-//        for (int x=siz.x-1; x>=0; x--) {
-//            for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
-//            for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
-//            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] |=  y           ? (hit [y-1] [x] == n) : 0x1;
-//            for (int unsigned n=0; n<ngb_n; n++)  wx [px[0][n]] |= (x!=siz.x-1) ? (res [y] [x+1] [n])  : 0x1;
-//            for (int unsigned o=0; o<ovl_x; o++) {
-//                 printf ("-wyx[%x,%x] ", wy [o], wx [o]);
-//            }
-//            for (int unsigned n=0; n<ngb_n; n++) {
-//                res [y][x][n] = res[y][x][n] && wy [py[0][n]] && wx [px[1][n]];
-//                printf ("r[%x]=%x ", n, res[y][x][n]);
-//            }
-////            printf ("%x ", hit [y] [x]);
-//            printf ("\n");
-//        }
-//        printf ("\n");
-//        // select pass
-//        for (int x=0; x<siz.x; x++) {
-//            for (int unsigned o=0; o<ovl_y; o++)  wy [o] = 0;
-//            for (int unsigned o=0; o<ovl_x; o++)  wx [o] = 0;
-//            for (int unsigned n=0; n<ngb_n; n++)  wy [py[1][n]] |= y ? (hit [y-1] [x] == n) : 0x1;
-//            for (int unsigned n=0; n<ngb_n; n++)  wx [px[1][n]] |= x ? (hit [y] [x-1] == n) : 0x1;
-//            for (int unsigned o=0; o<ovl_x; o++) {
-//                 printf ("+wyx[%x,%x] ", wy [o], wx [o]);
-//            }
-//            done = 0;
-//            for (int unsigned n=0; n<ngb_n; n++) {
-//                if (!done && res[y][x][n] && wy [py[0][n]] && wx [px[0][n]]) {
-//                    done = 1;
-//                    hit [y] [x] = n;
-//                }
-//                printf ("r[%x]=%x ", n, res[y][x][n]);
-//            }
-//            if (!done) {
-//                printf ("ERROR, no preimages\n");
-//                return (1);
-//            }
-//            printf ("%x ", hit [y] [x]);
-//            printf ("\n");
-//        }
-//        printf ("\n");
-//    }
-//    printf ("\n");
-//
-//    // construct preimage from marked network nodes
-//    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
-//    // buttom-left area
-//    for (int unsigned y=0; y<siz.y; y++) {
-//        for (int unsigned x=0; x<siz.x; x++) {
-//            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [x]);
-//            ca [y] [x] = a[0][0];
-//        }
-//    }
-//    // right border
-//    for (int unsigned y=0; y<siz.y; y++) {
-//        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [siz.x-1]);
-//        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
-//            ca [y] [x+siz.x] = a[0][1+x];
-//        }
-//    }
-//    // top border
-//    for (int unsigned x=0; x<siz.x; x++) {
-//        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [x]);
-//        for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
-//            ca [y+siz.y] [x] = a[1+y][0];
-//        }
-//    }
-//    // top-right corner
-//    ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [siz.x-1]);
-//    for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
-//        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
-//            ca [y+siz.y] [x+siz.x] = a[1+y][1+x];
-//        }
-//    }
-//
-//    return (0);
-//}
+int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
+    int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
+    int unsigned ca [siz.y+(ca2d.ngb.y-1)] [siz.x+(ca2d.ngb.x-1)]
+) {
+    // neighborhood states (sts ** ngb_n)
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+    uintca_t ngb_c = pow (ca2d.sts, (ca2d.ngb.y+1) * (ca2d.ngb.x+1));
+
+    int unsigned hit [siz.y] [siz.x];
+
+    // pointers to X/Y dimension edges
+    int unsigned p [2] [2] [ngb_c];
+
+    ca2d_network_pointers (ca2d, p);
+
+    int unsigned done;
+    // mark network nodes
+    printf ("HIT:\n");
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int x=0; x<siz.x; x++) {
+            int ny = y-1;
+            int nx = x-1;
+            done = 0;
+            for (int unsigned c=0; c<ngb_c && !done; c++) {
+                int unsigned w0;
+                int unsigned wy;
+                int unsigned wx;
+                int unsigned wz;
+                int unsigned p0 = p [1] [1] [c];
+                int unsigned py = p [0] [1] [c];
+                int unsigned px = p [1] [0] [c];
+                int unsigned pz = p [0] [0] [c];
+                w0 = res [y] [x] [p0];
+                if ((ny<0) || (ny>=siz.y)) {
+                    wy = 1;
+                } else {
+                    wy = hit [ny] [x] == py;
+                }
+                if ((nx<0) || (nx>=siz.x)) {
+                    wx = 1;
+                } else {
+                    wx = hit [y] [nx] == px;
+                }
+                if (((nx<0) || (nx>=siz.x)) || ((ny<0) || (ny>=siz.y))) {
+                    wz = 1;
+                } else {
+                    wz = hit [ny] [nx] == pz;
+                }
+                if (w0 && wy && wx && wz) {
+                    done = 1;
+                    hit [y] [x] = p0;
+                }
+            }
+        }
+    }
+
+    // construct preimage from marked network nodes
+    int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
+    // buttom-left area
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [x]);
+            ca [y] [x] = a[0][0];
+        }
+    }
+    // right border
+    for (int unsigned y=0; y<siz.y; y++) {
+        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [y] [siz.x-1]);
+        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
+            ca [y] [x+siz.x] = a[0][1+x];
+        }
+    }
+    // top border
+    for (int unsigned x=0; x<siz.x; x++) {
+        ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [x]);
+        for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
+            ca [y+siz.y] [x] = a[1+y][0];
+        }
+    }
+    // top-right corner
+    ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, hit [siz.y-1] [siz.x-1]);
+    for (int unsigned y=0; y<(ca2d.ngb.y-1); y++) {
+        for (int unsigned x=0; x<(ca2d.ngb.x-1); x++) {
+            ca [y+siz.y] [x+siz.x] = a[1+y][1+x];
+        }
+    }
+
+    return (0);
+}
 
