@@ -78,16 +78,17 @@ int main (int argc, char **argv) {
     printf     ("ovl                 = %lld\n", ovl);
 
     // read CA configuration file
-    int unsigned ca [siz.y] [siz.x];
-    ca2d_read (filename, siz, ca);
-    ca2d_print (siz, ca);
+    int unsigned cai [siz.y] [siz.x];
+    int unsigned cao [siz.y] [siz.x];
+    ca2d_read (filename, siz, cai);
+    ca2d_print (siz, cai);
     printf ("\n");
 
     // calculate network
     int unsigned ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-    int unsigned res [siz.y] [siz.x] [ngb_n];
-    ca2d_network       (ca2d, siz, ca, res);
-    ca2d_network_print (ca2d, siz,     res);
+    int unsigned res [siz.y] [siz.x] [ngb_n];  // result
+    ca2d_network       (ca2d, siz, cai, res);
+    ca2d_network_print (ca2d, siz,      res);
     // check if there is a preimage
     int unsigned cnt = 0;
     for (int unsigned n=0; n<ngb_n; n++) {
@@ -110,8 +111,31 @@ int main (int argc, char **argv) {
     printf ("\n");
 
     printf ("FORWARD:\n");
-    ca2d_forward (ca2d, sizp, preimage, ca);
-    ca2d_print (siz, ca);
+    ca2d_forward (ca2d, sizp, preimage, cao);
+    ca2d_print (siz, cao);
+
+    printf ("COMPARE: ");
+    int status;
+    status = ca2d_lattice_compare (siz, cai, cao);
+    if (status) {
+        printf ("FAILURE\n");
+    } else {
+        printf ("SUCCESS\n");
+    }
+
+
+    // get al preimages using bute force
+    printf ("BRUTE FORCE:\n");
+    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
+        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
+        ca2d_forward (ca2d, sizp, preimage, cao);
+        status = ca2d_lattice_compare (siz, cai, cao);
+        if (status) {
+        } else {
+            ca2d_print (sizp, preimage);
+            printf ("\n");
+        }
+    }
 
     return (0);
 }

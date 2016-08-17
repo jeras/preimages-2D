@@ -36,5 +36,6 @@
 
 int ca2d_read (char *filename, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x]);
 int ca2d_print (ca2d_size_t siz, int unsigned ca [siz.y] [siz.x]);
+int ca2d_lattice_compare (ca2d_size_t siz, int unsigned ca0 [siz.y] [siz.x], int unsigned ca1 [siz.y] [siz.x]);
 
 #endif

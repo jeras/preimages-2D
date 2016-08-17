@@ -64,3 +64,15 @@ int ca2d_print (ca2d_size_t siz, int unsigned ca [siz.y] [siz.x]) {
     return (0);
 }
 
+// compare CA states
+int ca2d_lattice_compare (ca2d_size_t siz, int unsigned ca0 [siz.y] [siz.x], int unsigned ca1 [siz.y] [siz.x]) {
+    for (int unsigned y=0; y<siz.y; y++) {
+        for (int unsigned x=0; x<siz.x; x++) {
+            if (ca0 [y] [x] != ca1 [y] [x]) {
+                return (1);
+            }
+        }
+    }
+    return (0);
+}
+

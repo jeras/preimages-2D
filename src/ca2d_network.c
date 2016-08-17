@@ -247,7 +247,7 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
 
     int unsigned hit [siz.y] [siz.x];
 
-    // pointers to X/Y dimension edges
+    // pointers
     int unsigned p [2] [2] [ngb_c];
 
     ca2d_network_pointers (ca2d, p);
@@ -255,12 +255,15 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
     int unsigned done;
     // mark network nodes
     printf ("HIT:\n");
-    for (int unsigned y=0; y<siz.y; y++) {
+    printf ("[");
+    for (int y=0; y<siz.y; y++) {
+#ifdef CA2D_DEBUG
+        printf ("[");
+#endif
         for (int x=0; x<siz.x; x++) {
             int ny = y-1;
             int nx = x-1;
-            done = 0;
-            for (int unsigned c=0; c<ngb_c && !done; c++) {
+            for (int unsigned c=0; c<ngb_c; c++) {
                 int unsigned w0;
                 int unsigned wy;
                 int unsigned wx;
@@ -270,27 +273,31 @@ int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
                 int unsigned px = p [1] [0] [c];
                 int unsigned pz = p [0] [0] [c];
                 w0 = res [y] [x] [p0];
-                if ((ny<0) || (ny>=siz.y)) {
+                if (ny<0) {
                     wy = 1;
                 } else {
                     wy = hit [ny] [x] == py;
                 }
-                if ((nx<0) || (nx>=siz.x)) {
+                if (nx<0) {
                     wx = 1;
                 } else {
                     wx = hit [y] [nx] == px;
                 }
-                if (((nx<0) || (nx>=siz.x)) || ((ny<0) || (ny>=siz.y))) {
+                if ((nx<0) || (ny<0)) {
                     wz = 1;
                 } else {
                     wz = hit [ny] [nx] == pz;
                 }
                 if (w0 && wy && wx && wz) {
-                    done = 1;
                     hit [y] [x] = p0;
+                    printf ("%u %u %u %u", p0, py, px, pz);
+                    break;
                 }
             }
+            printf ("=%x", hit [y] [x]);
+	    printf ("%s", x != (siz.x-1) ? "," : "]\n");
         }
+	printf ("%s", y != (siz.y-1) ? "," : "]\n");
     }
 
     // construct preimage from marked network nodes
