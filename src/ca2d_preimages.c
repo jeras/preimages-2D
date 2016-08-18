@@ -104,38 +104,38 @@ int main (int argc, char **argv) {
     // calculate preimage from network
     ca2d_size_t sizp = {siz.y+(ca2d.ngb.y-1), siz.x+(ca2d.ngb.x-1)};
     int unsigned preimage [sizp.y] [sizp.x];
-    ca2d_network_preimage (ca2d, siz, res, preimage);
-
-    printf ("PREIMAGE:\n");
-    ca2d_print (sizp, preimage);
-    printf ("\n");
-
-    printf ("FORWARD:\n");
-    ca2d_forward (ca2d, sizp, preimage, cao);
-    ca2d_print (siz, cao);
-
-    printf ("COMPARE: ");
-    int status;
-    status = ca2d_lattice_compare (siz, cai, cao);
-    if (status) {
-        printf ("FAILURE\n");
-    } else {
-        printf ("SUCCESS\n");
-    }
-
-
-    // get al preimages using bute force
-    printf ("BRUTE FORCE:\n");
-    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
-        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
-        ca2d_forward (ca2d, sizp, preimage, cao);
-        status = ca2d_lattice_compare (siz, cai, cao);
-        if (status) {
-        } else {
-            ca2d_print (sizp, preimage);
-            printf ("\n");
-        }
-    }
+//    ca2d_network_preimage (ca2d, siz, res, preimage);
+//
+//    printf ("PREIMAGE:\n");
+//    ca2d_print (sizp, preimage);
+//    printf ("\n");
+//
+//    printf ("FORWARD:\n");
+//    ca2d_forward (ca2d, sizp, preimage, cao);
+//    ca2d_print (siz, cao);
+//
+//    printf ("COMPARE: ");
+//    int status;
+//    status = ca2d_lattice_compare (siz, cai, cao);
+//    if (status) {
+//        printf ("FAILURE\n");
+//    } else {
+//        printf ("SUCCESS\n");
+//    }
+//
+//
+//    // get al preimages using bute force
+//    printf ("BRUTE FORCE:\n");
+//    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
+//        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
+//        ca2d_forward (ca2d, sizp, preimage, cao);
+//        status = ca2d_lattice_compare (siz, cai, cao);
+//        if (status) {
+//        } else {
+//            ca2d_print (sizp, preimage);
+//            printf ("\n");
+//        }
+//    }
 
     return (0);
 }
