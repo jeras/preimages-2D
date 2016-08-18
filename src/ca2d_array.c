@@ -99,6 +99,7 @@ int unsigned ca2d_array_from_mpz (int unsigned base, ca2d_size_t s, int unsigned
     return 0;
 }
 
+// get slice value
 int unsigned ca2d_array_slice (
     ca2d_size_t is,
     ca2d_size_t ob, ca2d_size_t os,
@@ -107,6 +108,20 @@ int unsigned ca2d_array_slice (
     for (int unsigned y=0; y<os.y; y++) {
         for (int unsigned x=0; x<os.x; x++) {
             oa[y][x] = ia[ob.y+y][ob.x+x];
+        }
+    }
+    return 0;
+}
+
+// set slice value
+int unsigned ca2d_array_fit (
+    ca2d_size_t is,
+    ca2d_size_t ob, ca2d_size_t os,
+    int unsigned ia[is.y][is.x], int unsigned oa[os.y][os.x])
+{
+    for (int unsigned y=0; y<os.y; y++) {
+        for (int unsigned x=0; x<os.x; x++) {
+            ia[ob.y+y][ob.x+x] = oa[y][x];
         }
     }
     return 0;

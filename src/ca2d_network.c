@@ -61,8 +61,53 @@ int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [
 }
 
 // tables for geting overlap values from neighborhood values
+static int ca2d_network_table_v2o (ca2d_t ca2d, int unsigned v2o_y [2] [(size_t) pow (ca2d.sts, (ca2d.ngb.y-1)* ca2d.ngb.x   )] [(size_t) pow (ca2d.sts, ca2d.ngb.y-1)],
+                                                int unsigned v2o_x [2] [(size_t) pow (ca2d.sts,  ca2d.ngb.y   *(ca2d.ngb.x-1))] [(size_t) pow (ca2d.sts, ca2d.ngb.x-1)]) {
+    ca2d_size_t soy = {ca2d.ngb.y-1, ca2d.ngb.x  };
+    ca2d_size_t sox = {ca2d.ngb.y  , ca2d.ngb.x-1};
+    ca2d_size_t svy = {ca2d.ngb.y-1,            1};
+    ca2d_size_t svx = {           1, ca2d.ngb.x-1};
+    ca2d_size_t sv  = {ca2d.ngb.y-1, ca2d.ngb.x-1}; // vertice
+    int unsigned aoy [soy.y] [soy.x];
+    int unsigned aox [sox.y] [sox.x];
+    int unsigned avy [svy.y] [svy.x];
+    int unsigned avx [svx.y] [svx.x];
+    int unsigned av  [sv.y]  [sv.x] ;
+    // overlay sizes
+    const int unsigned ovl_y  = pow (ca2d.sts, soy.y*soy.x);
+    const int unsigned ovl_x  = pow (ca2d.sts, sox.y*sox.x);
+    const int unsigned ver_y  = pow (ca2d.sts, svy.y*svy.x);
+    const int unsigned ver_x  = pow (ca2d.sts, svx.y*svx.x);
+    const int unsigned ver_v  = pow (ca2d.sts, sv.y *sv.x );
+
+    for (int unsigned oy=0; oy<ovl_y; oy++) {
+        ca2d_array_from_ui (ca2d.sts, soy, aoy, oy);
+        for (int unsigned vy=0; vy<ver_y; vy++) {
+            for (int unsigned dy=0; dy<2; dy++) {
+                ca2d_array_from_ui (ca2d.sts, sv, av, vy);
+                ca2d_array_slice (soy, (ca2d_size_t) {dy, 0}, svy, aoy, av);
+                ca2d_array_combine_y (dy?soy:sv, dy?sv:soy, dy?aoy:avy, dy?avy:aoy, aoy);
+                ca2d_array_to_ui (ca2d.sts, soy, aoy, &v2o_y [dy] [oy] [vy]);
+            }
+        }
+    }
+    for (int unsigned ox=0; ox<ovl_y; ox++) {
+        ca2d_array_from_ui (ca2d.sts, sox, aox, ox);
+        for (int unsigned vx=0; vx<ver_x; vx++) {
+            for (int unsigned dx=0; dx<2; dx++) {
+                ca2d_array_from_ui (ca2d.sts, sv, av, vx);
+                ca2d_array_slice (soy, (ca2d_size_t) {0, dx}, svx, aox, av);
+                ca2d_array_combine_y (dx?sox:sv, dx?sv:sox, dx?aox:avx, dx?avx:aox, aox);
+                ca2d_array_to_ui (ca2d.sts, sox, aox, &v2o_x [dx] [ox] [vx]);
+            }
+        }
+    }
+    return (0);
+}
+
+// tables for geting overlap values from neighborhood values
 static int ca2d_network_table_n2o (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
-                                         int unsigned n2o_x [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+                                                int unsigned n2o_x [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     ca2d_size_t sn = {ca2d.ngb.y  , ca2d.ngb.x  }; 
     ca2d_size_t sx = {ca2d.ngb.y  , ca2d.ngb.x-1}; 
     ca2d_size_t sy = {ca2d.ngb.y-1, ca2d.ngb.x  }; 
@@ -156,7 +201,6 @@ int ca2d_network_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [(size_t) pow (c
             ca2d_array_to_ui (ca2d.sts, srx, arx, &rx);
             o2n_y [dx] [ox] [rx] = n;
         }
-        printf ("\n");
     }
     return (0);
 }
@@ -232,6 +276,22 @@ int ca2d_network_ex2o (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [
 
 // function for geting edge integer in X dimension from array of overlap integers
 int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [siz]) {
+    ca2d_size_t se = {ca2d.ngb.y-1, ca2d.ngb.x-1 + siz};
+    ca2d_size_t so = {ca2d.ngb.y-1, ca2d.ngb.x};
+    ca2d_size_t sr = {           1, ca2d.ngb.x};
+    int unsigned ae [se.y] [se.x];
+    int unsigned ao [so.y] [so.x];
+    int unsigned ar [sr.y] [sr.x];
+    // set first overlap
+    ca2d_array_from_ui (ca2d.sts, so, ao, o[0]);
+    ca2d_array_fit (se, (ca2d_size_t) {0, 0}, so, ae, ao);
+    // apprend remaining remainders
+    for (int unsigned x=0; x<siz; x++) {
+        ca2d_array_from_ui (ca2d.sts, so, ao, o[x]);
+        ca2d_array_slice (so, (ca2d_size_t) {0, ca2d.ngb.x-1}, sr, ao, ar);
+        ca2d_array_fit (se, (ca2d_size_t) {0, x+ca2d.ngb.x-1}, sr, ae, ar);
+    }
+    ca2d_array_to_ui (ca2d.sts, se, ae, &e);
     return (0);
 }
 
@@ -261,14 +321,14 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     // memory allocation for preimage network
     int unsigned net [siz] [ovl_x];
 
-    // get segment x from current edge
+    // convert input edge into array of overlaps
     int unsigned ovl_i [siz];
     ca2d_network_ex2o (ca2d, siz, edg_i, ovl_i);
 
     // create unprocessed 1D preimage network for the current edge
     for (int unsigned x=0; x<siz; x++) {
         // initialize network weights to zero
-        for (int unsigned o=0; o<ovl_x; o++) {
+        for (int unsigned o=0; o<ovl_y; o++) {
             net [x] [o] = 0;
         }
         int unsigned c = ca [x];
@@ -287,8 +347,31 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
             }
         }
     }
+
     // count 1D network preimages
-    for (int x=0; x<siz; x++) {
+    ca2d_size_t soy = {ca2d.ngb.y-1, ca2d.ngb.x  };
+    ca2d_size_t sox = {ca2d.ngb.y  , ca2d.ngb.x-1};
+    ca2d_size_t svy = {ca2d.ngb.y-1,            1};
+    ca2d_size_t svx = {           1, ca2d.ngb.x-1};
+    const int unsigned ver_y  = pow (ca2d.sts, svy.y*svy.x);
+    const int unsigned ver_x  = pow (ca2d.sts, svx.y*svx.x);
+    int unsigned v2o_y [2] [ovl_y] [ver_y];
+    int unsigned v2o_x [2] [ovl_x] [ver_x];
+
+    ca2d_network_table_v2o (ca2d, v2o_y, v2o_x);
+
+    int unsigned dx=0;
+    for (int x=1; x<siz; x++) {
+        for (int unsigned o=0; o<ovl_y; o++) {
+            // first check if the path is available
+            if (net [x] [o]) {
+                int unsigned sum = 0;
+                for (int unsigned v=0; v<ver_y; v++) {
+                    sum += net [x-1] [v2o_y[dx][o][v]];
+                }
+                net [x] [o] = sum;
+            }
+        }
     }
 
     // list 1D network preimages
@@ -301,6 +384,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
 
+    printf ("DEBUG: begin of network\n");
     // memory allocation for preimage network
     mpz_t net [siz.y+1] [edg_x];
 
@@ -335,6 +419,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             // 1D network preimages are end edges, put their weights into the list
         }
     }
+    printf ("DEBUG: end of network\n");
     return (0);
 }
 
