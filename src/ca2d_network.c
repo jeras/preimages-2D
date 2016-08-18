@@ -61,7 +61,7 @@ int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [
 }
 
 // tables for geting overlap values from neighborhood values
-int ca2d_network_table_n2o (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
+static int ca2d_network_table_n2o (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
                                          int unsigned n2o_x [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
     ca2d_size_t sn = {ca2d.ngb.y  , ca2d.ngb.x  }; 
     ca2d_size_t sx = {ca2d.ngb.y  , ca2d.ngb.x-1}; 
@@ -72,6 +72,7 @@ int ca2d_network_table_n2o (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (c
     uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
  
     for (int unsigned n=0; n<ngb_n; n++) {
+        // neighborhood integer is converted into array
         ca2d_array_from_ui (ca2d.sts, sn, an, n);
         for (int unsigned dy=0; dy<2; dy++) {
             ca2d_array_slice (sn, (ca2d_size_t) {dy, 0}, sy, an, ay);
@@ -81,6 +82,36 @@ int ca2d_network_table_n2o (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (c
             ca2d_array_slice (sn, (ca2d_size_t) {0, dx}, sx, an, ax);
             ca2d_array_to_ui (ca2d.sts, sx, ax, &n2o_x [dx] [n]);
         }
+    }
+    return (0);
+}
+
+static int ca2d_network_table_n2o_print (ca2d_t ca2d, int unsigned n2o_y [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],
+                                                      int unsigned n2o_x [2] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+    ca2d_size_t sn = {ca2d.ngb.y  , ca2d.ngb.x  }; 
+    ca2d_size_t sx = {ca2d.ngb.y  , ca2d.ngb.x-1}; 
+    ca2d_size_t sy = {ca2d.ngb.y-1, ca2d.ngb.x  }; 
+    int unsigned an [sn.y] [sn.x];
+    int unsigned ax [sx.y] [sx.x];
+    int unsigned ay [sy.y] [sy.x];
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+ 
+    for (int unsigned n=0; n<ngb_n; n++) {
+        // neighborhood integer is converted into array
+        ca2d_array_from_ui (ca2d.sts, sn, an, n);
+        printf ("n=%x -> ", n);
+        ca2d_array_print (sn, an);
+        for (int unsigned dy=0; dy<2; dy++) {
+            ca2d_array_from_ui (ca2d.sts, sy, ay, n2o_y[dy][n]);
+            printf (" n2o_y[%u]=%x -> ", dy, n2o_y[dy][n]);
+            ca2d_array_print (sy, ay);
+        }
+        for (int unsigned dx=0; dx<2; dx++) {
+            ca2d_array_from_ui (ca2d.sts, sx, ax, n2o_x[dx][n]);
+            printf (" n2o_x[%u]=%x -> ", dx, n2o_x[dx][n]);
+            ca2d_array_print (sx, ax);
+        }
+        printf ("\n");
     }
     return (0);
 }
@@ -110,8 +141,8 @@ int ca2d_network_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [(size_t) pow (c
         ca2d_array_from_ui (ca2d.sts, sn, an, n);
         for (int unsigned dy=0; dy<2; dy++) {
             // neighborhood array is split into overlay and rest arrays
-            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {     dy, 0}, soy, an, aoy);
-            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {sn.y-dy, 0}, sry, an, ary);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {       dy, 0}, soy, an, aoy);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {sn.y-1-dy, 0}, sry, an, ary);
             // overlay and rest arrays are converted into integers
             ca2d_array_to_ui (ca2d.sts, soy, aoy, &oy);
             ca2d_array_to_ui (ca2d.sts, sry, ary, &ry);
@@ -119,12 +150,68 @@ int ca2d_network_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [(size_t) pow (c
             o2n_y [dy] [oy] [ry] = n;
         }
         for (int unsigned dx=0; dx<2; dx++) {
-            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {     dx, 0}, sox, an, aox);
-            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {sn.x-dx, 0}, srx, an, arx);
-            ca2d_array_to_ui (ca2d.sts, soy, aoy, &oy);
-            ca2d_array_to_ui (ca2d.sts, sry, ary, &ry);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0,        dx}, sox, an, aox);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, sn.x-1-dx}, srx, an, arx);
+            ca2d_array_to_ui (ca2d.sts, sox, aox, &ox);
+            ca2d_array_to_ui (ca2d.sts, srx, arx, &rx);
             o2n_y [dx] [ox] [rx] = n;
         }
+        printf ("\n");
+    }
+    return (0);
+}
+
+// tables for geting neighborhood values from overlap values and rest
+// TODO: use a different strategy or just remove this debug code
+static int ca2d_network_table_o2n_print (ca2d_t ca2d, int unsigned o2n_y [2] [(size_t) pow (ca2d.sts, (ca2d.ngb.y-1) *  ca2d.ngb.x   )] [(size_t) pow (ca2d.sts, ca2d.ngb.x)],
+                                                      int unsigned o2n_x [2] [(size_t) pow (ca2d.sts,  ca2d.ngb.y    * (ca2d.ngb.x-1))] [(size_t) pow (ca2d.sts, ca2d.ngb.y)]) {
+    ca2d_size_t sn  = {ca2d.ngb.y  , ca2d.ngb.x  }; 
+    ca2d_size_t sox = {ca2d.ngb.y  , ca2d.ngb.x-1}; 
+    ca2d_size_t soy = {ca2d.ngb.y-1, ca2d.ngb.x  }; 
+    ca2d_size_t srx = {ca2d.ngb.y  ,            1}; 
+    ca2d_size_t sry = {           1, ca2d.ngb.x  }; 
+    int unsigned an  [sn.y]  [sn.x] ;
+    int unsigned aox [sox.y] [sox.x];
+    int unsigned aoy [soy.y] [soy.x];
+    int unsigned arx [srx.y] [srx.x];
+    int unsigned ary [sry.y] [sry.x];
+    int unsigned ox;
+    int unsigned oy;
+    int unsigned rx;
+    int unsigned ry;
+    uintca_t ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
+
+    // for every neighborhood integer
+    for (int unsigned n=0; n<ngb_n; n++) {
+        // neighborhood integer is converted into array
+        ca2d_array_from_ui (ca2d.sts, sn, an, n);
+        printf ("n=%x -> ", n);
+        ca2d_array_print (sn, an);
+        for (int unsigned dy=0; dy<2; dy++) {
+            // neighborhood array is split into overlay and rest arrays
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {       dy, 0}, soy, an, aoy);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {sn.y-1-dy, 0}, sry, an, ary);
+            // overlay and rest arrays are converted into integers
+            ca2d_array_to_ui (ca2d.sts, soy, aoy, &oy);
+            ca2d_array_to_ui (ca2d.sts, sry, ary, &ry);
+            printf (" oy[%u]=%x -> ", dy, oy);
+            ca2d_array_print (soy, aoy);
+            printf (" ry[%u]=%x -> ", dy, ry);
+            ca2d_array_print (sry, ary);
+            printf (" o2n_y[%u][%x][%x]=%x -> ", dy, oy, ry, o2n_y [dy] [oy] [ry]);
+        }
+        for (int unsigned dx=0; dx<2; dx++) {
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0,        dx}, sox, an, aox);
+            ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, sn.x-1-dx}, srx, an, arx);
+            ca2d_array_to_ui (ca2d.sts, sox, aox, &ox);
+            ca2d_array_to_ui (ca2d.sts, srx, arx, &rx);
+            printf (" ox[%u]=%x -> ", dx, ox);
+            ca2d_array_print (sox, aox);
+            printf (" rx[%u]=%x -> ", dx, rx);
+            ca2d_array_print (srx, arx);
+            printf (" o2n_x[%u][%x][%x]=%x -> ", dx, ox, rx, o2n_x [dx] [ox] [rx]);
+        }
+        printf ("\n");
     }
     return (0);
 }
@@ -171,6 +258,10 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     int unsigned o2n_x [2] [ovl_x] [lft_x];
     ca2d_network_table_n2o (ca2d, n2o_y, n2o_x);
     ca2d_network_table_o2n (ca2d, o2n_y, o2n_x);
+    printf ("DEBUG 1\n");
+//    ca2d_network_table_n2o_print (ca2d, n2o_y, n2o_x);
+//    ca2d_network_table_o2n_print (ca2d, o2n_y, o2n_x);
+    printf ("DEBUG 2\n");
 
     int unsigned dx=0;
 
