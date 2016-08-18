@@ -226,8 +226,7 @@ int ca2d_network_o2ex (ca2d_t ca2d, ca2d_size_t siz, int unsigned e, int unsigne
     return (0);
 }
 
-
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int unsigned dy, int unsigned edg_i, int unsigned *edgn, int unsigned edg_o [*edgn]) {
     // neighborhood states (sts ** ngb_n)
     const int unsigned ngb_n  = pow (ca2d.sts,  ca2d.ngb.y   * ca2d.ngb.x   );
     // overlay sizes
@@ -237,19 +236,8 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     const int unsigned lft_x  = pow (ca2d.sts, (ca2d.ngb.y  )               );
     const int unsigned lft_y  = pow (ca2d.sts,                (ca2d.ngb.x  ));
 
-
-    const int unsigned ngb_c  = pow (ca2d.sts, (ca2d.ngb.y+1)*(ca2d.ngb.x+1));
-
-    // edge size
-    const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
-    const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
-
     int unsigned tab [ngb_n];
     ca2d_rule_table (ca2d, tab);
-
-    // memory allocation for preimage network
-    int unsigned net1d [2] [siz.x] [ovl_x];
-    mpz_t        net2d [2] [siz.y] [edg_x];
 
     // tables
     int unsigned n2o_y [2] [ngb_n];
@@ -263,45 +251,72 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 //    ca2d_network_table_o2n_print (ca2d, o2n_y, o2n_x);
     printf ("DEBUG 2\n");
 
-    int unsigned dx=0;
+    // memory allocation for preimage network
+    int unsigned net [siz] [ovl_x];
+
+    // create unprocessed 1D preimage network for the current edge
+    for (int x=0; x<siz; x++) {
+        // initialize network weights to zero
+        for (int o=0; o<ovl_x; o++) {
+            net [x] [o] = 0;
+        }
+        int unsigned c = ca [x];
+        // get segment x from current edge
+        // for all neighborhoods with the curent edge check them against the table
+        for (int unsigned lft=0; lft<lft_x; lft++) {
+            // combine edge and leftover into neighborhood
+            int unsigned n=0;
+            // check neighborhood against the rule
+            if (c == tab[n]) {
+                // get end edge overlap from pointer table
+                int unsigned o = n2o_y [dy?0:1] [n];
+                // set weight to overlap
+                net [x] [o] = 1;
+            }
+        }
+        // 
+    }
+    return (0);
+}
+
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+    // edge size
+    const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
+    const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
+
+    // memory allocation for preimage network
+    mpz_t net [siz.y+1] [edg_x];
+
+    // compact list of edges
+    int unsigned edgn = edg_x;
+    int unsigned edgs [edgn];
+
+    // initialize array variable
+    for (int y=0; y<=siz.y; y++) {
+        for (int unsigned e=0; e<edg_x; e++) {
+            mpz_init (net [y] [e]);
+        }
+    }
+    // initialize starting edge to unit (open edge)
+    // TODO: this can be generalised, provided as input
+    for (int unsigned e=0; e<edg_x; e++) {
+        mpz_set_ui (net [0] [e], 1);
+    }
+
+    int unsigned dy = 0;
 
     // compute network weights
-    for (int unsigned dy=0; dy<2; dy++) {
-        for (int y=dy?siz.y-1:0; dy?(y>=0):(y<siz.y); y=dy?y-1:y+1) {
-
-            // loop over all edges
-            for (int unsigned e=0; e<edg_x; e++) {
-                // only process edge if it's weight is not zero
-                if (net2d [dx] [y] [e]) {
-                    // create unprocessed 1D preimage network for the current edge
-                    for (int x=0; x<siz.x; x++) {
-                         // initialize network weights to zero
-                         for (int o=0; o<ovl_x; o++) {
-                             net1d [dx] [x] [o] = 0;
-                         }
-                         int unsigned c = ca [y] [x];
-                         // get segment x from current edge
-                         // for all neighborhoods with the curent edge check them against the table
-                         for (int unsigned lft=0; lft<lft_x; lft++) {
-                             // combine edge and leftover into neighborhood
-                             int unsigned n=0;
-                             // check neighborhood against the rule
-                             if (c == tab[n]) {
-                                 // get end edge overlap from pointer table
-                                 int unsigned o = n2o_y [dy?0:1] [n];
-                                 // set weight to overlap
-                                 net1d [0] [x] [o] = 1;
-                                 net1d [1] [x] [o] = 1;
-                             }
-                         }
-                         // 
-                     }
-                }
-                // count 1D network preimages
-                // list 1D network preimages
-
-                // 1D network preimages are end edges, put their weights into the list
+    for (int y=0; y<siz.y; y++) {
+        // loop over all edges
+        for (int unsigned e=0; e<edg_x; e++) {
+            // only process edge if it's weight is not zero
+            if (net [y] [e]) {
+                edgn = edg_x;
+                ca1d_network (ca2d, siz.x, ca [y], dy, e, &edgn, edgs);
             }
+            // count 1D network preimages
+
+            // 1D network preimages are end edges, put their weights into the list
         }
     }
     return (0);
