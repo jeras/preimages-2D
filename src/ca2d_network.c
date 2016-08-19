@@ -281,7 +281,7 @@ int ca2d_network_ex2o (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [
 }
 
 // function for geting edge integer in X dimension from array of overlap integers
-int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [siz]) {
+int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned *e, int unsigned o [siz]) {
     ca2d_size_t se = {ca2d.ngb.y-1, ca2d.ngb.x-1 + siz};
     ca2d_size_t so = {ca2d.ngb.y-1, ca2d.ngb.x  };
     ca2d_size_t sr = {           1, ca2d.ngb.x  };
@@ -297,7 +297,7 @@ int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [
         ca2d_array_slice (so, (ca2d_size_t) {0,   ca2d.ngb.x-1}, sr, ao, ar);
         ca2d_array_fit   (se, (ca2d_size_t) {0, x+ca2d.ngb.x-1}, sr, ae, ar);
     }
-    ca2d_array_to_ui (ca2d.sts, se, ae, &e);
+    ca2d_array_to_ui (ca2d.sts, se, ae, &(*e));
     return (0);
 }
 
@@ -394,7 +394,48 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     ca1d_network_print (ca2d, siz, net);
     printf ("\n");
 
+    // calculate preimage number
+    *edgn = 0;
+    for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
+        *edgn += net [siz-1] [ovl];
+    }
+    // allocate memory for preimage list
+    int unsigned lst [*edgn] [siz];
+
+    // initialize list of 1D network preimages
+    int unsigned p = 0;
+    for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
+        for (int unsigned i=0; i<net[siz-1][ovl]; i++) {
+            lst [p] [siz-1] = ovl;
+            p++;
+        }
+    }
     // list 1D network preimages
+    for (int x=siz-2; x>0; x--) {
+        int unsigned p = 0;
+        while (p < *edgn) {
+            int unsigned ovl = lst [p] [x+1] = ovl;
+            for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
+                int unsigned o = v2o_y[1][ovl][shf];
+                for (int unsigned i=0; i<net[x][o]; i++) {
+                    lst [p] [x] = o;
+                    p++;
+                }
+            }
+        }
+    }
+
+    // initialize edge list
+    const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz));
+    for (int unsigned i=0; i<edg_x; i++) {
+        edg_o [i] = 0;
+    }
+    // put preimages into edge list
+    for (int unsigned i=0; i<*edgn; i++) {
+        int unsigned edg;
+        ca2d_network_o2ex (ca2d, siz, &edg, lst [i]);
+        edg_o [edg] += 1;
+    }
 
     return (0);
 }
