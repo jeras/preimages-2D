@@ -71,11 +71,10 @@ int main (int argc, char **argv) {
     printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
-    ca2d_rule_print (ca2d);   
+//    ca2d_rule_print (ca2d);   
 
-    // overlap states
-    uintca_t ovl = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x - 1);
-    printf     ("ovl                 = %lld\n", ovl);
+    // update ca2d structure
+    ca2d_update (&ca2d);
 
     // read CA configuration file
     int unsigned cai [siz.y] [siz.x];
@@ -85,13 +84,12 @@ int main (int argc, char **argv) {
     printf ("\n");
 
     // calculate network
-    int unsigned ngb_n = pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x);
-    int unsigned res [siz.y] [siz.x] [ngb_n];  // result
+    int unsigned res [siz.y] [siz.x] [ca2d.ngb.n];  // result
     ca2d_network       (ca2d, siz, cai, res);
     ca2d_network_print (ca2d, siz,      res);
     // check if there is a preimage
     int unsigned cnt = 0;
-    for (int unsigned n=0; n<ngb_n; n++) {
+    for (int unsigned n=0; n<ca2d.ngb.n; n++) {
          cnt += res [0] [0] [n];
     }
     if (!cnt) {

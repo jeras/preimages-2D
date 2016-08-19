@@ -31,20 +31,41 @@
 #define CA2D_H
 
 // math libraries
-//#include <math.h>
 #include <gmp.h>
 
 #define uintca_t long long int unsigned
 
 typedef struct {
-    int unsigned y;
-    int unsigned x;
+    // basic parameters
+    int unsigned y;  // Y size
+    int unsigned x;  // X size
+    // calculated parameters
+    int unsigned a;  // area (x*y)
+    int unsigned n;  // number of states
 } ca2d_size_t;
 
 typedef struct {
-    int unsigned sts;
-    ca2d_size_t  ngb;
-    mpz_t        rule;
+    // basic parameters
+    int unsigned sts;  // number of cell states
+    ca2d_size_t  ngb;  // neighborhood size
+    mpz_t        rule; // rule
+    // calculated parameters
+    struct {
+        ca2d_size_t y;
+        ca2d_size_t x;
+    } ovl;             // overlap size
+    struct {
+        ca2d_size_t y;
+        ca2d_size_t x;
+    } rem;             // remainder size (remainder and overlap add to a whole neighborhood)
+    ca2d_size_t ver;   // vertice size (corner overlap)
+    struct {
+        ca2d_size_t y;
+        ca2d_size_t x;
+    } shf;             // shift size (shift and vertice add to a whole overlap)
 } ca2d_t;
 
-#endif
+int ca2d_update (ca2d_t *ca2d);
+int ca2d_bprint (ca2d_t  ca2d);
+
+#endif // CA2D_H
