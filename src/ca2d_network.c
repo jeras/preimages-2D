@@ -322,7 +322,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
 //    for (int x=0; x<siz; x++)
 //        printf (" %x", ovl_i[x]);
 //        //ca2d_array_print (ca2d.ovl.y, ovl_i[x]);
-    printf ("\n");
+//    printf ("\n");
 //    printf ("DEBUG: after edge conversion\n");
 
 
@@ -351,29 +351,23 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
 
     printf ("DEBUG: after edge is applied\n");
     // count 1D network preimages
-    ca2d_size_t soy = {ca2d.ngb.y-1, ca2d.ngb.x  };
-    ca2d_size_t sox = {ca2d.ngb.y  , ca2d.ngb.x-1};
-    ca2d_size_t svy = {ca2d.ngb.y-1,            1};
-    ca2d_size_t svx = {           1, ca2d.ngb.x-1};
-    const int unsigned ver_y  = pow (ca2d.sts, svy.y*svy.x);
-    const int unsigned ver_x  = pow (ca2d.sts, svx.y*svx.x);
-    int unsigned v2o_y [2] [ca2d.ovl.y.n] [ver_y];
-    int unsigned v2o_x [2] [ca2d.ovl.x.n] [ver_x];
+    int unsigned v2o_y [2] [ca2d.ovl.y.n] [ca2d.shf.y.n];
+    int unsigned v2o_x [2] [ca2d.ovl.x.n] [ca2d.shf.x.n];
 
     ca2d_network_table_v2o (ca2d, v2o_y, v2o_x);
     ca2d_network_table_v2o_print (ca2d, v2o_y, v2o_x);
     printf ("DEBUG: vertice teble created\n");
 
-    int unsigned dx=0;
+    int unsigned d=0;
     for (int x=1; x<siz; x++) {
-        for (int unsigned o=0; o<ca2d.ovl.y.n; o++) {
+        for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
             // first check if the path is available
-            if (net [x] [o]) {
+            if (net [x] [ovl]) {
                 int unsigned sum = 0;
-                for (int unsigned v=0; v<ver_y; v++) {
-                    sum += net [x-1] [v2o_y[dx][o][v]];
+                for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
+                    sum += net [x-1] [v2o_y[d][ovl][shf]];
                 }
-                net [x] [o] = sum;
+                net [x] [ovl] = sum;
             }
         }
     }
