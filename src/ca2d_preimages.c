@@ -71,7 +71,7 @@ int main (int argc, char **argv) {
     printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
     printf     ("filename            = %s\n", filename);
-//    ca2d_rule_print (ca2d);   
+    ca2d_rule_print (ca2d);   
 
     // update ca2d structure
     ca2d_update (&ca2d);
