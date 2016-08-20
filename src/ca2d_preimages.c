@@ -86,7 +86,8 @@ int main (int argc, char **argv) {
     // calculate network
     mpz_t cnt;
     mpz_init (cnt);
-    ca2d_network       (ca2d, siz, cai, cnt);
+    int unsigned * list [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x];
+    ca2d_network (ca2d, siz, cai, cnt, list);
 //    ca2d_network_print (ca2d, siz,      res);
 //    // check if there is a preimage
 //    int unsigned cnt = 0;

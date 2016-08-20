@@ -447,7 +447,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt) {
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt, int unsigned list [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]) {
     // edge size
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
@@ -469,15 +469,13 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     for (int unsigned e=0; e<edg_x; e++) {
         mpz_set_ui (net [0] [e], 1);
     }
-
-    int unsigned d = 0;
     // compute network weights
     for (int y=0; y<siz.y; y++) {
         // loop over all edges
         for (int unsigned e=0; e<edg_x; e++) {
             // only process edge if it's weight is not zero
             if (mpz_sgn (net [y] [e]) > 0) {
-                ca1d_network (ca2d, siz.x, ca [y], d, e, net [y] [e], &edg_n, net [y+1]);
+                ca1d_network (ca2d, siz.x, ca [y], 0, e, net [y] [e], &edg_n, net [y+1]);
             }
         }
     }
@@ -489,8 +487,16 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     }
     gmp_printf ("cnt = %Zi\n", cnt);
 
+
     // allocate memory for preimages described by edges
-    int unsigned lst [mpz_get_ui(cnt)] [siz.y];
+    mpz_t edges [edg_x];
+    mpz_t weight;
+    for (int unsigned i=0; i<edg_x; i++) {
+        mpz_init (edges[i]);
+    }
+    mpz_init (weight);
+    mpz_set_ui (weight, 1);
+    int unsigned lst [mpz_get_ui(cnt)] [siz.y+1];
 
     // initialize list of 1D network preimages
     int unsigned p = 0;
@@ -498,29 +504,47 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         int unsigned max;
         max = mpz_get_ui(net[siz.y-1][edg]);
         for (int unsigned i=0; i<max; i++) {
-            lst [p] [siz.y-1] = edg;
+            lst [p] [siz.y] = edg;
             p++;
         }
     }
-//    // list 2D network preimages
-//    for (int y=siz.y-2; y>=0; y--) {
-//        int unsigned p = 0;
-//        while (p < cnt) {
-//            int unsigned edg = lst [p] [x+1];
-////            printf ("DEBUG: p=%u x=%u, edg=%x\n", p, x+1, edg);
-//            // calculate start edge to edges transition for 1D line
-//            ca1d_network (ca2d, siz.x, ca [y], d, e, net [y] [e], &edg_n, net [y+1]);
-//            for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
-//                int unsigned o = v2o_y[0][ovl][shf];
-////                printf ("DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
-//                for (int unsigned i=0; i<net[x][o]; i++) {
-//                    lst [p] [x] = o;
-//                    p++;
-//                }
-//            }
-//        }
-//    }
+    // list 2D network preimages
+    for (int y=siz.y-1; y>=0; y--) {
+        int unsigned p = 0;
+        while (p < mpz_get_ui(cnt)) {
+            int unsigned edg = lst [p] [y+1];
+//            printf ("DEBUG: p=%u y=%u, edg=%x\n", p, y+1, edg);
+            // calculate start edge to edges transition for 1D line
+            ca1d_network (ca2d, siz.x, ca [y], 1, edg, weight, &edg_n, edges);
+            for (int unsigned edg=0; edg<edg_x; edg++) {
+                if ((mpz_sgn (net[y][edg]) > 0) && (mpz_sgn (edges[edg]) > 0)) {
+                    for (int unsigned i=0; i<mpz_get_ui(net[y][edg]); i++) {
+                       lst [p] [y] = edg;
+                       p++;
+                    }
+                }
+            }
+        }
+    }
 
+    // allocate memory for preimages
+    ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
+    siz_pre.a = siz_pre.y * siz_pre.x;
+    list = (int unsigned (*) [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt));
+    // convert edge list into actual preimage list
+    for (int unsigned i=0; i<mpz_get_ui(cnt); i++) {
+        ca2d_size_t siz_lin0 = (ca2d_size_t) {ca2d.ver.y, siz.x+ca2d.ver.x};
+        int unsigned line0 [siz_lin0.y] [siz_lin0.x];
+        ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][0]);
+        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, line0, list[i]);
+        for (int unsigned y=0; y<siz.y; y++) {
+//            ca2d_size_t siz_lin = (ca2d_size_t) {1, siz.x+ca2d.ver.x};
+//            ca2d_array_from_ui (ca2d.sts, siz_lin0, line, lst[i][0]);
+//            ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin, line, list[i]);
+        }
+    }
+
+    gmp_printf ("cnt = %Zi\n", cnt);
     printf ("DEBUG: end of network\n");
     return (0);
 }
