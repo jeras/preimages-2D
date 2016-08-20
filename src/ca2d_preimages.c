@@ -86,33 +86,26 @@ int main (int argc, char **argv) {
     // calculate network
     mpz_t cnt;
     mpz_init (cnt);
-    int unsigned * list [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x];
+    ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
+    siz_pre.a = siz_pre.y * siz_pre.x;
+    int unsigned (* list) [siz_pre.y] [siz_pre.x];
     ca2d_network (ca2d, siz, cai, cnt, list);
-//    ca2d_network_print (ca2d, siz,      res);
-//    // check if there is a preimage
-//    int unsigned cnt = 0;
-//    for (int unsigned n=0; n<ca2d.ngb.n; n++) {
-//         cnt += res [0] [0] [n];
-//    }
-//    if (!cnt) {
-//         printf ("There are no preimages\n");
-//         return (0);
-//    } else {
-//         printf ("CNT = %u\n", cnt);
-//    }
-//
+
     // calculate preimage from network
     int status;
-    ca2d_size_t sizp = {siz.y+(ca2d.ngb.y-1), siz.x+(ca2d.ngb.x-1)};
-    int unsigned preimage [sizp.y] [sizp.x];
-//    ca2d_network_preimage (ca2d, siz, res, preimage);
-//
+    int unsigned preimage [siz_pre.y] [siz_pre.x];
+
+//    for (int unsigned i=0; i<mpz_get_ui(cnt); i++) {
+//        ca2d_print (siz_pre, list[i]);
+//        printf ("\n");
+//    }
+
 //    printf ("PREIMAGE:\n");
-//    ca2d_print (sizp, preimage);
+//    ca2d_print (siz_pre, preimage);
 //    printf ("\n");
 //
 //    printf ("FORWARD:\n");
-//    ca2d_forward (ca2d, sizp, preimage, cao);
+//    ca2d_forward (ca2d, siz_pre, preimage, cao);
 //    ca2d_print (siz, cao);
 //
 //    printf ("COMPARE: ");
@@ -127,14 +120,14 @@ int main (int argc, char **argv) {
 ////    // get al preimages using bute force
 ////    printf ("BRUTE FORCE:\n");
 ////    int num = 0;
-////    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
-////        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
-////        ca2d_forward (ca2d, sizp, preimage, cao);
+////    for (int unsigned p=0; p<pow(ca2d.sts,siz_pre.y*siz_pre.x); p++) {
+////        ca2d_array_from_ui (ca2d.sts, siz_pre, preimage, p);
+////        ca2d_forward (ca2d, siz_pre, preimage, cao);
 ////        status = ca2d_lattice_compare (siz, cai, cao);
 ////        if (status) {
 ////        } else {
 ////            printf ("PREIMAGE num = %u\n", num);
-////            ca2d_print (sizp, preimage);
+////            ca2d_print (siz_pre, preimage);
 ////            printf ("\n");
 ////            num++;
 ////        }
