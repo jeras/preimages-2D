@@ -29,7 +29,7 @@
 
 // user interface libraries
 #include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 
 // math libraries
 //#include <stdint.h>
@@ -117,7 +117,7 @@ static int ca2d_network_table_v2o_print (ca2d_t ca2d, int unsigned v2o_y [2] [ca
             ca2d_array_print (ca2d.shf.y, shf_ay);
             for (int unsigned d=0; d<2; d++) {
                 ca2d_array_from_ui (ca2d.sts, ca2d.ovl.y, ovl_ayo, v2o_y[d][ovl][shf]);
-                printf (" oy[%u]=%x -> ", d, v2o_y[d][ovl][shf]);
+                printf (" v2o_y[%u][%x][%x]=%x -> ", d, ovl, shf, v2o_y[d][ovl][shf]);
                 ca2d_array_print (ca2d.ovl.y, ovl_ayo);
             }
         }
@@ -392,7 +392,6 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
         }
     }
     ca1d_network_print (ca2d, siz, net);
-    printf ("\n");
 
     // calculate preimage number
     *edg_n = 0;
@@ -407,23 +406,43 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
         for (int unsigned i=0; i<net[siz-1][ovl]; i++) {
             lst [p] [siz-1] = ovl;
+//            printf ("DEBUG: p=%u, x=%lu, ovl=%x\n", p, siz-1, lst [p] [siz-1]);
             p++;
         }
     }
+    printf ("DEBUG: edg_n = %u\n", *edg_n);
     // list 1D network preimages
-    for (int x=siz-2; x>0; x--) {
+    int unsigned t = 0;
+    for (int x=siz-2; x>=0; x--) {
         int unsigned p = 0;
         while (p < *edg_n) {
-            int unsigned ovl = lst [p] [x+1] = ovl;
+            int unsigned ovl = lst [p] [x+1];
+//            printf ("DEBUG: p=%u x=%u, ovl=%x\n", p, x+1, ovl);
             for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
-                int unsigned o = v2o_y[1][ovl][shf];
+                int unsigned o = v2o_y[0][ovl][shf];
+//                printf ("DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
                 for (int unsigned i=0; i<net[x][o]; i++) {
                     lst [p] [x] = o;
                     p++;
                 }
             }
+            t++;
+            if (t>10) {
+                printf ("DEBUG: t=10\n");
+                exit(1);
+            }
         }
     }
+    // print preimages
+    printf ("DEBUG: edgn = %u\n", *edg_n);
+    for (int unsigned i=0; i<*edg_n; i++) {
+        printf ("DEBUG: edg[%u] =", i);
+        for (int x=0; x<siz; x++) {
+            printf (" %x", lst [i] [x]);
+        }
+        printf ("\n");
+    }
+    
 
     // put preimages into edge list
     for (int unsigned i=0; i<*edg_n; i++) {
@@ -432,6 +451,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
         mpz_add (edg_o [edg], edg_o [edg], edg_w);
     }
 
+    printf ("\n");
     return (0);
 }
 
