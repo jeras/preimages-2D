@@ -313,7 +313,7 @@ static int ca1d_network_print (ca2d_t ca2d, size_t siz, int unsigned net [siz] [
     return (0);
 }
 
-static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int unsigned dy, int unsigned edg_i, int unsigned *edgn, int unsigned edg_o [*edgn]) {
+static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int unsigned dy, int unsigned edg_i, mpz_t edg_w, int unsigned *edg_n, mpz_t edg_o [(size_t) pow (ca2d.sts, (ca2d.ngb.y-1)*((ca2d.ngb.x-1)+siz))]) {
     int unsigned tab [ca2d.ngb.n];
     ca2d_rule_table (ca2d, tab);
 
@@ -395,12 +395,12 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     printf ("\n");
 
     // calculate preimage number
-    *edgn = 0;
+    *edg_n = 0;
     for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
-        *edgn += net [siz-1] [ovl];
+        *edg_n += net [siz-1] [ovl];
     }
     // allocate memory for preimage list
-    int unsigned lst [*edgn] [siz];
+    int unsigned lst [*edg_n] [siz];
 
     // initialize list of 1D network preimages
     int unsigned p = 0;
@@ -413,7 +413,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     // list 1D network preimages
     for (int x=siz-2; x>0; x--) {
         int unsigned p = 0;
-        while (p < *edgn) {
+        while (p < *edg_n) {
             int unsigned ovl = lst [p] [x+1] = ovl;
             for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
                 int unsigned o = v2o_y[1][ovl][shf];
@@ -425,22 +425,17 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
         }
     }
 
-    // initialize edge list
-    const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz));
-    for (int unsigned i=0; i<edg_x; i++) {
-        edg_o [i] = 0;
-    }
     // put preimages into edge list
-    for (int unsigned i=0; i<*edgn; i++) {
+    for (int unsigned i=0; i<*edg_n; i++) {
         int unsigned edg;
         ca2d_network_o2ex (ca2d, siz, &edg, lst [i]);
-        edg_o [edg] += 1;
+        mpz_add (edg_o [edg], edg_o [edg], edg_w);
     }
 
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]) {
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [ca2d.ngb.n]) {
     // edge size
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
@@ -450,8 +445,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     mpz_t net [siz.y+1] [edg_x];
 
     // compact list of edges
-    int unsigned edgn = edg_x;
-    int unsigned edgs [edgn];
+    int unsigned edg_n;
 
     // initialize array variable
     for (int y=0; y<=siz.y; y++) {
@@ -465,18 +459,15 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         mpz_set_ui (net [0] [e], 1);
     }
 
-    int unsigned dy = 0;
-
+    int unsigned d = 0;
     // compute network weights
 // TODO    for (int y=0; y<siz.y; y++) {
     for (int y=0; y<1; y++) {
         // loop over all edges
         for (int unsigned e=0; e<edg_x; e++) {
- //       for (int unsigned e=0; e<1; e++) {
             // only process edge if it's weight is not zero
-            if (net [y] [e]) {
-                edgn = edg_x;
-                ca1d_network (ca2d, siz.x, ca [y], dy, e, &edgn, edgs);
+            if (mpz_sgn (net [y] [e]) > 0) {
+                ca1d_network (ca2d, siz.x, ca [y], d, e, net [y] [e], &edg_n, net [y+1]);
             }
 
             // 1D network preimages are end edges, put their weights into the list
