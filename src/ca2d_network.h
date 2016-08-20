@@ -34,10 +34,8 @@
 // CA preimage network
 ////////////////////////////////////////////////////////////////////////////////
 
-int ca2d_network_pointers (ca2d_t ca2d, int unsigned py [2] [2] [(size_t) pow (ca2d.sts, (ca2d.ngb.y+1) * (ca2d.ngb.x+1))]);
-
 int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz,                                  int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]);
-int ca2d_network       (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)]);
+int ca2d_network       (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt);
 
 int ca2d_network_preimage (ca2d_t ca2d, ca2d_size_t siz,
     int unsigned res [siz.y] [siz.x] [(size_t) pow (ca2d.sts, ca2d.ngb.y * ca2d.ngb.x)],

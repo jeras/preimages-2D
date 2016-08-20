@@ -443,7 +443,6 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
         printf ("\n");
     }
     
-
     // put preimages into edge list
     for (int unsigned i=0; i<*edg_n; i++) {
         int unsigned edg;
@@ -455,7 +454,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], int unsigned res [siz.y] [siz.x] [ca2d.ngb.n]) {
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt) {
     // edge size
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
@@ -481,18 +480,24 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 
     int unsigned d = 0;
     // compute network weights
-// TODO    for (int y=0; y<siz.y; y++) {
-    for (int y=0; y<1; y++) {
+    for (int y=0; y<siz.y; y++) {
+//    for (int y=0; y<1; y++) {
         // loop over all edges
         for (int unsigned e=0; e<edg_x; e++) {
             // only process edge if it's weight is not zero
             if (mpz_sgn (net [y] [e]) > 0) {
                 ca1d_network (ca2d, siz.x, ca [y], d, e, net [y] [e], &edg_n, net [y+1]);
             }
-
-            // 1D network preimages are end edges, put their weights into the list
         }
     }
+
+    // count all preimages
+    mpz_set_ui (cnt, 0);
+    for (int unsigned i=0; i<edg_x; i++) {
+        mpz_add (cnt, cnt, net [siz.y] [i]);
+    }
+    gmp_printf ("cnt = %Zi\n", cnt);
+
     printf ("DEBUG: end of network\n");
     return (0);
 }

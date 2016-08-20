@@ -84,22 +84,24 @@ int main (int argc, char **argv) {
     printf ("\n");
 
     // calculate network
-    int unsigned res [siz.y] [siz.x] [ca2d.ngb.n];  // result
-    ca2d_network       (ca2d, siz, cai, res);
-    ca2d_network_print (ca2d, siz,      res);
-    // check if there is a preimage
-    int unsigned cnt = 0;
-    for (int unsigned n=0; n<ca2d.ngb.n; n++) {
-         cnt += res [0] [0] [n];
-    }
-    if (!cnt) {
-         printf ("There are no preimages\n");
-         return (0);
-    } else {
-         printf ("CNT = %u\n", cnt);
-    }
-
+    mpz_t cnt;
+    mpz_init (cnt);
+    ca2d_network       (ca2d, siz, cai, cnt);
+//    ca2d_network_print (ca2d, siz,      res);
+//    // check if there is a preimage
+//    int unsigned cnt = 0;
+//    for (int unsigned n=0; n<ca2d.ngb.n; n++) {
+//         cnt += res [0] [0] [n];
+//    }
+//    if (!cnt) {
+//         printf ("There are no preimages\n");
+//         return (0);
+//    } else {
+//         printf ("CNT = %u\n", cnt);
+//    }
+//
     // calculate preimage from network
+    int status;
     ca2d_size_t sizp = {siz.y+(ca2d.ngb.y-1), siz.x+(ca2d.ngb.x-1)};
     int unsigned preimage [sizp.y] [sizp.x];
 //    ca2d_network_preimage (ca2d, siz, res, preimage);
@@ -113,7 +115,6 @@ int main (int argc, char **argv) {
 //    ca2d_print (siz, cao);
 //
 //    printf ("COMPARE: ");
-//    int status;
 //    status = ca2d_lattice_compare (siz, cai, cao);
 //    if (status) {
 //        printf ("FAILURE\n");
@@ -122,18 +123,21 @@ int main (int argc, char **argv) {
 //    }
 //
 //
-//    // get al preimages using bute force
-//    printf ("BRUTE FORCE:\n");
-//    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
-//        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
-//        ca2d_forward (ca2d, sizp, preimage, cao);
-//        status = ca2d_lattice_compare (siz, cai, cao);
-//        if (status) {
-//        } else {
-//            ca2d_print (sizp, preimage);
-//            printf ("\n");
-//        }
-//    }
+////    // get al preimages using bute force
+////    printf ("BRUTE FORCE:\n");
+////    int num = 0;
+////    for (int unsigned p=0; p<pow(ca2d.sts,sizp.y*sizp.x); p++) {
+////        ca2d_array_from_ui (ca2d.sts, sizp, preimage, p);
+////        ca2d_forward (ca2d, sizp, preimage, cao);
+////        status = ca2d_lattice_compare (siz, cai, cao);
+////        if (status) {
+////        } else {
+////            printf ("PREIMAGE num = %u\n", num);
+////            ca2d_print (sizp, preimage);
+////            printf ("\n");
+////            num++;
+////        }
+////    }
 
     return (0);
 }
