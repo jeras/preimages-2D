@@ -498,16 +498,16 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     mpz_set_ui (weight, 1);
     int unsigned lst [mpz_get_ui(cnt)] [siz.y+1];
 
-//    // print edge counters
-//    printf ("DEBUG: edge weights from forward direction\n");
-//    for (int y=0; y<=siz.y; y++) {
-//        printf ("DEBUG: y=%u [", y);
-//        for (int unsigned edg=0; edg<edg_x; edg++) {
-//            gmp_printf ("%Zi ", net[y][edg]);
-//        }
-//        printf ("]\n");
-//    }
-//    printf ("\n");
+    // print edge counters
+    printf ("DEBUG: edge weights from forward direction\n");
+    for (int y=0; y<=siz.y; y++) {
+        printf ("DEBUG: y=%u [", y);
+        for (int unsigned edg=0; edg<edg_x; edg++) {
+            gmp_printf ("%Zi ", net[y][edg]);
+        }
+        printf ("]\n");
+    }
+    printf ("\n");
 
     // initialize list of 1D network preimages
     int unsigned p = 0;
@@ -538,7 +538,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
                 if ((mpz_sgn (net[y][edg]) > 0) && (mpz_sgn (edges[edg]) > 0)) {
                     for (int unsigned i=0; i<mpz_get_ui(net[y][edg]); i++) {
                        lst [p] [y] = edg;
-                       printf ("  BUG: p=%u edg=%x\n", p, edg);
+                       printf ("  BUG: max=%lu p=%u edg=%x\n", mpz_get_ui(net[y][edg]), p, edg);
                        p++;
                     }
                 }
