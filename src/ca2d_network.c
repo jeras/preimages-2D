@@ -583,29 +583,32 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     list = (int unsigned (*) [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt[0]));
     // convert edge list into actual preimage list
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-          printf (" preimage [%u]\n", i);
+//          printf (" preimage [%u]\n", i);
         ca2d_size_t siz_lin0 = (ca2d_size_t) {ca2d.ver.y, siz.x+ca2d.ver.x};
         int unsigned line0 [siz_lin0.y] [siz_lin0.x];
         ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][0]);
-        ca2d_array_fit (siz_lin0, (ca2d_size_t) {0, 0}, siz_pre, line0, list[i]);
-          printf (" y=%u edg=%x -> ", 0, lst[i][0]);
-          ca2d_array_print (siz_lin0, line0);
-          printf ("\n");
+        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, list[i], line0);
+//          printf (" y=%u edg=%x -> ", 0, lst[i][0]);
+//          ca2d_array_print (siz_lin0, line0);
+//          printf ("\n");
         for (int unsigned y=0; y<siz.y; y++) {
             ca2d_size_t siz_lin = (ca2d_size_t) {1, siz.x+ca2d.ver.x};
             int unsigned line [siz_lin.y] [siz_lin.x];
             ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][y+1]);
             ca2d_array_slice   (siz_lin0, (ca2d_size_t) {ca2d.ver.y-1, 0}, siz_lin, line0, line);
-            ca2d_array_fit (siz_lin, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_pre, line, list[i]);
-              printf (" y=%u edg=%x -> ", 0, lst[i][y+1]);
-              printf (" y=%u -> ", y);
-              ca2d_array_print (siz_lin, line);
-              printf ("\n");
+            ca2d_array_fit (siz_pre, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_lin, list[i], line);
+//              printf (" y=%u edg=%x -> ", y+1, lst[i][y+1]);
+//              ca2d_array_print (siz_lin, line);
+//              printf ("\n");
         }
-          printf ("\n");
+//          printf ("\n");
     }
 
-    gmp_printf ("cnt[0] = %Zi\n", cnt[0]);
+    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
+        ca2d_print (siz_pre, list[i]);
+        printf ("\n");
+    }
+
     printf ("DEBUG: end of network\n");
     return (0);
 }
