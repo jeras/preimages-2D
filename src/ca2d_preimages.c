@@ -56,20 +56,20 @@ int main (int argc, char **argv) {
 
     // read input arguments
     if (argc < 8) {
-        fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_X NEIGHBORHOOD_SIZE_Y RULE CA_SIZE_X CA_SIZE_Y ca_state_filename.cas\n", argv[0]);
+        fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_Y NEIGHBORHOOD_SIZE_X RULE CA_SIZE_Y CA_SIZE_X ca_state_filename.cas\n", argv[0]);
         return (1);
     }
     ca2d.sts   = strtoul (argv[1], 0, 0);
-    ca2d.ngb.x = strtoul (argv[2], 0, 0);
-    ca2d.ngb.y = strtoul (argv[3], 0, 0);
+    ca2d.ngb.y = strtoul (argv[2], 0, 0);
+    ca2d.ngb.x = strtoul (argv[3], 0, 0);
     mpz_init_set_str (ca2d.rule, argv[4], 0);
-    siz.x = strtoul (argv[5], 0, 0);
-    siz.y = strtoul (argv[6], 0, 0);
+    siz.y = strtoul (argv[5], 0, 0);
+    siz.x = strtoul (argv[6], 0, 0);
     filename = argv[7];
 
     // printout call arguments for debugging purposes
-    printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("CA_SIZE_Y           = %i\n", siz.y);
+    printf     ("CA_SIZE_X           = %i\n", siz.x);
     printf     ("filename            = %s\n", filename);
     ca2d_rule_print (ca2d);   
 
@@ -84,8 +84,7 @@ int main (int argc, char **argv) {
     printf ("\n");
 
     // calculate network
-    mpz_t cnt;
-    mpz_init (cnt);
+    mpz_t cnt [2];
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
     siz_pre.a = siz_pre.y * siz_pre.x;
     int unsigned (* list) [siz_pre.y] [siz_pre.x];
@@ -95,7 +94,7 @@ int main (int argc, char **argv) {
     int status;
     int unsigned preimage [siz_pre.y] [siz_pre.x];
 
-//    for (int unsigned i=0; i<mpz_get_ui(cnt); i++) {
+//    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
 //        ca2d_print (siz_pre, list[i]);
 //        printf ("\n");
 //    }
