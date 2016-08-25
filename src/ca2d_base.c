@@ -73,15 +73,16 @@ int ca2d_update (ca2d_t *ca2d) {
 }
 
 int ca2d_bprint (ca2d_t ca2d) {
-    printf ("CA:\n");
-    printf ("    ngb  : siz={%u,%u}, a=%u, n=%u\n", ca2d.ngb.y  , ca2d.ngb.x  , ca2d.ngb.a  , ca2d.ngb.n  );
-    printf ("    ovl-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.ovl.y.y, ca2d.ovl.y.x, ca2d.ovl.y.a, ca2d.ovl.y.n);
-    printf ("    ovl-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.ovl.x.y, ca2d.ovl.x.x, ca2d.ovl.x.a, ca2d.ovl.x.n);
-    printf ("    rem-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.rem.y.y, ca2d.rem.y.x, ca2d.rem.y.a, ca2d.rem.y.n);
-    printf ("    rem-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.rem.x.y, ca2d.rem.x.x, ca2d.rem.x.a, ca2d.rem.x.n);
-    printf ("    ver  : siz={%u,%u}, a=%u, n=%u\n", ca2d.ver.y  , ca2d.ver.x  , ca2d.ver.a  , ca2d.ver.n  );
-    printf ("    shf-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.y.y, ca2d.shf.y.x, ca2d.shf.y.a, ca2d.shf.y.n);
-    printf ("    shf-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.x.y, ca2d.shf.x.x, ca2d.shf.x.a, ca2d.shf.x.n);
+    printf ("CA parameters:\n");
+    printf ("  sts  : %u\n", ca2d.sts);
+    printf ("  ngb  : siz={%u,%u}, a=%u, n=%u\n", ca2d.ngb.y  , ca2d.ngb.x  , ca2d.ngb.a  , ca2d.ngb.n  );
+    printf ("  ovl-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.ovl.y.y, ca2d.ovl.y.x, ca2d.ovl.y.a, ca2d.ovl.y.n);
+    printf ("  ovl-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.ovl.x.y, ca2d.ovl.x.x, ca2d.ovl.x.a, ca2d.ovl.x.n);
+    printf ("  rem-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.rem.y.y, ca2d.rem.y.x, ca2d.rem.y.a, ca2d.rem.y.n);
+    printf ("  rem-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.rem.x.y, ca2d.rem.x.x, ca2d.rem.x.a, ca2d.rem.x.n);
+    printf ("  ver  : siz={%u,%u}, a=%u, n=%u\n", ca2d.ver.y  , ca2d.ver.x  , ca2d.ver.a  , ca2d.ver.n  );
+    printf ("  shf-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.y.y, ca2d.shf.y.x, ca2d.shf.y.a, ca2d.shf.y.n);
+    printf ("  shf-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.x.y, ca2d.shf.x.x, ca2d.shf.x.a, ca2d.shf.x.n);
 
     return (0);
 }

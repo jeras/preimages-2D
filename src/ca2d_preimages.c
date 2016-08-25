@@ -67,14 +67,13 @@ int main (int argc, char **argv) {
     siz.x = strtoul (argv[6], 0, 0);
     filename = argv[7];
 
-    // printout call arguments for debugging purposes
-    printf     ("CA_SIZE_Y           = %i\n", siz.y);
-    printf     ("CA_SIZE_X           = %i\n", siz.x);
-    printf     ("filename            = %s\n", filename);
-    ca2d_rule_print (ca2d);   
-
     // update ca2d structure
     ca2d_update (&ca2d);
+    printf ("\n");
+
+    // printout call arguments for debugging purposes
+    ca2d_rule_print (ca2d);   
+    printf ("\n");
 
     // read CA configuration file
     int unsigned cai [siz.y] [siz.x];

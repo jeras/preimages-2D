@@ -568,14 +568,14 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             }
         }
     }
-    // print list of preimages
-    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage array i=%u -> [", i);
-        for (int unsigned y=0; y<=siz.y; y++) {
-            printf ("%u ", lst [i] [y]);
-        }
-        printf ("]\n");
-    }
+//    // print list of preimages
+//    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
+//        printf ("preimage array i=%u -> [", i);
+//        for (int unsigned y=0; y<=siz.y; y++) {
+//            printf ("%u ", lst [i] [y]);
+//        }
+//        printf ("]\n");
+//    }
 
     // allocate memory for preimages
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};

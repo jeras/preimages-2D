@@ -54,8 +54,8 @@ int ca2d_read (char *filename, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x])
 
 // print CA state
 int ca2d_print (ca2d_size_t siz, int unsigned ca [siz.y] [siz.x]) {
+    printf ("CA configuration siz [y↓,x→] = [%u,%u]:\n", siz.y, siz.x);
     for (int unsigned y=0; y<siz.y; y++) {
-        printf ("CA [y=%u]:", y);
         for (int unsigned x=0; x<siz.x; x++) {
             printf (" %u", ca [y] [x]);
         }
