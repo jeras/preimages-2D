@@ -452,7 +452,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
 
-    printf ("DEBUG: begin of network\n");
+//    printf ("DEBUG: begin of network\n");
     // compact list of edges
     int unsigned edg_n;
 
@@ -485,35 +485,29 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             }
         }
     }
-    // print edge counters
-    printf ("DEBUG: edge weights from forward/backward direction\n");
-    for (int y=0; y<=siz.y; y++) {
-        // forward
-        printf ("net [d=0][y=%u] = [", y);
-        for (int unsigned edg=0; edg<edg_x; edg++) {
-            gmp_printf ("%Zi ", net[0][y][edg]);
-        }
-        printf ("]");
-        // space
-        printf ("  ");
-        // backward
-        printf ("net [d=1][y=%u] [", y);
-        for (int unsigned edg=0; edg<edg_x; edg++) {
-            gmp_printf ("%Zi ", net[1][y][edg]);
-        }
-        printf ("]");
-        // newline
-        printf ("\n");
-    }
-    printf ("\n");
     // count all preimages
     for (int unsigned d=0; d<2; d++) {
         mpz_init   (cnt [d]);
         for (int unsigned edg=0; edg<edg_x; edg++) {
             mpz_add (cnt [d], cnt [d], net [d] [d ? 0 : siz.y] [edg]);
         }
-        gmp_printf ("cnt [%u] = %Zi\n", d, cnt [d]);
     }
+    // print edge counters
+    printf ("NETWORK: edge weights from forward/backward direction, summed preimages\n");
+    for (int d=0; d<2; d++) {
+        for (int y=0; y<=siz.y; y++) {
+            printf ("net [dy=%u][y=%u] = [", d, y);
+            for (int unsigned edg=0; edg<edg_x; edg++) {
+                gmp_printf ("%Zi ", net[d][y][edg]);
+            }
+            printf ("]");
+            if ((y-(1-d)*(siz.y))==0) {
+                gmp_printf ("  cnt [%u] = %Zi", d, cnt [d]);
+            }
+            printf ("\n");
+        }
+    }
+    printf ("\n");
 
 
     // allocate memory for preimages described by edges
@@ -523,7 +517,6 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 
     // initialize list of 2D network preimages
     int unsigned p = 0;
-    printf ("DEBUG: y=%u siz.y=%u\n", 0, siz.y);
     for (int unsigned edg=0; edg<edg_x; edg++) {
         int unsigned max;
         max = mpz_get_ui(net[1][0][edg]);
@@ -542,7 +535,6 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     }
     for (int y=1; y<=siz.y; y++) {
         int unsigned p = 0;
-        printf ("DEBUG: y=%u siz.y=%u\n", y, siz.y);
         while (p < mpz_get_ui(cnt[0])) {
             // gain process 1D preimage for current edge (lst [p] [y])
             mpz_set_ui (weight, 1);
@@ -609,7 +601,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         printf ("\n");
     }
 
-    printf ("DEBUG: end of network\n");
+//    printf ("DEBUG: end of network\n");
     return (0);
 }
 
