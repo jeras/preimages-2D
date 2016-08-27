@@ -284,10 +284,11 @@ int ca2d_network_ex2o (ca2d_t ca2d, size_t siz, int unsigned e, int unsigned o [
 int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned *e, int unsigned o [siz]) {
     ca2d_size_t se = {ca2d.ngb.y-1, ca2d.ngb.x-1 + siz};
     ca2d_size_t so = {ca2d.ngb.y-1, ca2d.ngb.x  };
-    ca2d_size_t sr = {           1, ca2d.ngb.x  };
+    ca2d_size_t sr = {ca2d.ngb.y-1,            1};
     int unsigned ae [se.y] [se.x];
     int unsigned ao [so.y] [so.x];
     int unsigned ar [sr.y] [sr.x];
+    printf ("DEBUG: after mpz_add");
     // set first overlap
     ca2d_array_from_ui (ca2d.sts, so, ao, o[0]);
     ca2d_array_fit (se, (ca2d_size_t) {0, 0}, so, ae, ao);
@@ -359,6 +360,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
 //            ca2d_array_from_ui (ca2d.sts, ca2d.ngb, ngb_a, ngb);
 //            printf (" n=%x -> ", ngb);
 //            ca2d_array_print (ca2d.ngb, ngb_a);
+//            printf ("\n");
             if (ca[x] == tab[ngb]) {
                 // get end edge overlap from pointer table
                 int unsigned ovl = n2o_y [1-dy] [ngb];
@@ -377,7 +379,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
 
     ca2d_network_table_v2o (ca2d, v2o_y, v2o_x);
 //    ca2d_network_table_v2o_print (ca2d, v2o_y, v2o_x);
-//    printf ("DEBUG: vertice teble created\n");
+//    printf ("DEBUG: vertice table created\n");
 
     for (int x=1; x<siz; x++) {
         for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
@@ -402,23 +404,26 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     int unsigned lst [*edg_n] [siz];
 
     // initialize list of 1D network preimages
+//    printf ("DEBUG: init\n");
     int unsigned p = 0;
     for (int unsigned ovl=0; ovl<ca2d.ovl.y.n; ovl++) {
+//        printf ("DEBUG: net[siz-1][%x]=%u\n", ovl, net[siz-1][ovl]);
         for (int unsigned i=0; i<net[siz-1][ovl]; i++) {
+//            printf ("  DEBUG: p=%u, ovl=%x\n", p, ovl);
             lst [p] [siz-1] = ovl;
             p++;
         }
     }
-//    printf ("DEBUG: edg_n = %u\n", *edg_n);
+    printf ("DEBUG: edg_n = %u\n", *edg_n);
     // list 1D network preimages
     for (int x=siz-2; x>=0; x--) {
         int unsigned p = 0;
         while (p < *edg_n) {
             int unsigned ovl = lst [p] [x+1];
-//            printf ("DEBUG: p=%u x=%u, ovl=%x\n", p, x+1, ovl);
+            printf ("DEBUG: p=%u x=%u, ovl=%x\n", p, x+1, ovl);
             for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
                 int unsigned o = v2o_y[0][ovl][shf];
-//                printf ("DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
+                printf ("  DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
                 for (int unsigned i=0; i<net[x][o]; i++) {
                     lst [p] [x] = o;
                     p++;
@@ -426,23 +431,29 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
             }
         }
     }
-//    // print preimages
-//    printf ("DEBUG: edgn = %u\n", *edg_n);
-//    for (int unsigned i=0; i<*edg_n; i++) {
-//        printf ("DEBUG: edg[%u] =", i);
-//        for (int x=0; x<siz; x++) {
-//            printf (" %x", lst [i] [x]);
-//        }
-//        printf ("\n");
-//    }
+    // print preimages
+    printf ("DEBUG: print preimages\n");
+    printf ("DEBUG: edg_n = %u\n", *edg_n);
+    for (int unsigned i=0; i<*edg_n; i++) {
+        printf ("DEBUG: edg[%u] =", i);
+        for (int x=0; x<siz; x++) {
+            printf (" %x", lst [i] [x]);
+        }
+        printf ("\n");
+        printf ("DEBUG: end %u\n", i);
+    }
+    printf ("DEBUG: preimages printed");
     
     // put preimages into edge list
     for (int unsigned i=0; i<*edg_n; i++) {
         int unsigned edg;
+    printf ("DEBUG: before o2ex");
         ca2d_network_o2ex (ca2d, siz, &edg, lst [i]);
+    printf ("DEBUG: after o2ex");
         mpz_add (edg_o [edg], edg_o [edg], edg_w);
     }
 
+    printf ("DEBUG: after o2ex");
 //    printf ("\n");
     return (0);
 }
