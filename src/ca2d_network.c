@@ -504,7 +504,8 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
         }
     }
     // print edge counters
-    printf ("NETWORK: edge weights from forward/backward direction, summed preimages\n");
+    printf ("NETWORK: edge weights from forward/backward direction,\n");
+    printf ("         summed preimages\n");
     for (int d=0; d<2; d++) {
         for (int y=0; y<=siz.y; y++) {
             printf ("net [dy=%u][y=%u] = [", d, y);
@@ -608,6 +609,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     }
 
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
+        printf ("preimage i=%u:  ", i);
         ca2d_print (siz_pre, list[i]);
         printf ("\n");
     }
