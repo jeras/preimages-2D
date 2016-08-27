@@ -67,6 +67,8 @@ int ca2d_update (ca2d_t *ca2d) {
     ca2d->ver.n   = (size_t) pow (ca2d->sts, ca2d->ver.a  );
     ca2d->shf.y.n = (size_t) pow (ca2d->sts, ca2d->shf.y.a);
     ca2d->shf.x.n = (size_t) pow (ca2d->sts, ca2d->shf.x.a);
+    // rule table
+    ca2d_rule_table (ca2d);
 
     ca2d_bprint (*ca2d);
     return (0);
@@ -83,7 +85,8 @@ int ca2d_bprint (ca2d_t ca2d) {
     printf ("  ver  : siz={%u,%u}, a=%u, n=%u\n", ca2d.ver.y  , ca2d.ver.x  , ca2d.ver.a  , ca2d.ver.n  );
     printf ("  shf-y: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.y.y, ca2d.shf.y.x, ca2d.shf.y.a, ca2d.shf.y.n);
     printf ("  shf-x: siz={%u,%u}, a=%u, n=%u\n", ca2d.shf.x.y, ca2d.shf.x.x, ca2d.shf.x.a, ca2d.shf.x.n);
-
+    printf ("CA rule table:\n");
+    ca2d_rule_print (ca2d);
     return (0);
 }
 

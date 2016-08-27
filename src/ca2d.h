@@ -49,7 +49,7 @@ typedef struct {
     int unsigned sts;  // number of cell states
     ca2d_size_t  ngb;  // neighborhood size
     mpz_t        rule; // rule
-    // calculated parameters
+    // calculated neighborhood/overlap parameters
     struct {
         ca2d_size_t y;
         ca2d_size_t x;
@@ -63,6 +63,8 @@ typedef struct {
         ca2d_size_t y;
         ca2d_size_t x;
     } shf;             // shift size (shift and vertice add to a whole overlap)
+    // rule table
+    int unsigned *tab;
 } ca2d_t;
 
 int ca2d_update (ca2d_t *ca2d);

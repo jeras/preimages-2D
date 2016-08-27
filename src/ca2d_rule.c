@@ -4,6 +4,7 @@
 
 // user interface libraries
 #include <stdio.h>
+#include <stdlib.h>
 
 // math libraries
 #include <math.h>
@@ -39,29 +40,32 @@ int ca2d_rule_gol () {
     return (0);
 }
 
-int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[ca2d.ngb.n]) {
+int ca2d_rule_table (ca2d_t *ca2d) {
     // neighborhood area
     // check if it is within allowed values, for example less then 9==3*3
-    if ((ca2d.ngb.x == 0) || (ca2d.ngb.y == 0) || ((ca2d.ngb.y * ca2d.ngb.x) > 9)) {
-        printf ("ERROR: neighborhood area %u is outside range [1:9].\n", ca2d.ngb.a);
+    if ((ca2d->ngb.x == 0) || (ca2d->ngb.y == 0) || ((ca2d->ngb.y * ca2d->ngb.x) > 9)) {
+        printf ("ERROR: neighborhood area %u is outside range [1:9].\n", ca2d->ngb.a);
         return (1);
     }
 
     mpz_t range;
     mpz_init (range);
-    mpz_ui_pow_ui (range, ca2d.sts, ca2d.ngb.n);
-    if (mpz_cmp (ca2d.rule, range) > 0) {
+    mpz_ui_pow_ui (range, ca2d->sts, ca2d->ngb.n);
+    if (mpz_cmp (ca2d->rule, range) > 0) {
         gmp_printf ("ERROR: rule is outside of range = %Zi\n", range);
         return (1);
     }
     mpz_clear (range);
 
+    // allocate rule table memory
+    ca2d->tab = malloc (ca2d->ngb.n * sizeof(int unsigned));
+
     // rule table (conversion to base sts)
     mpz_t rule_q;
-    mpz_init_set (rule_q, ca2d.rule);
-    for (int unsigned i=0; i<ca2d.ngb.n; i++) {
+    mpz_init_set (rule_q, ca2d->rule);
+    for (int unsigned i=0; i<ca2d->ngb.n; i++) {
         // populate transition function
-        tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, ca2d.sts);
+        ca2d->tab[i] = mpz_tdiv_q_ui (rule_q, rule_q, ca2d->sts);
     }
     mpz_clear (rule_q);
  
@@ -70,9 +74,6 @@ int ca2d_rule_table (ca2d_t ca2d, int unsigned tab[ca2d.ngb.n]) {
 
 int ca2d_rule_print (ca2d_t ca2d) {
     int unsigned a [ca2d.ngb.y] [ca2d.ngb.x];
-    gmp_printf ("RULE = 0x%Zx\n", ca2d.rule);
-    int unsigned tab[ca2d.ngb.n];
-    ca2d_rule_table (ca2d, tab);
     for (int unsigned n=0; n<ca2d.ngb.n; n++) {
         // convert table index into neighborhood status 2D array
         ca2d_array_from_ui (ca2d.sts, ca2d.ngb, a, n);
@@ -85,7 +86,7 @@ int ca2d_rule_print (ca2d_t ca2d) {
             }
             printf ("]");
         }
-        printf ("] = %u\n", tab[n]);
+        printf ("] = %u\n", ca2d.tab[n]);
     }
     return (0);
 }

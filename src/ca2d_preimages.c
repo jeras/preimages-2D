@@ -71,10 +71,6 @@ int main (int argc, char **argv) {
     ca2d_update (&ca2d);
     printf ("\n");
 
-    // printout call arguments for debugging purposes
-    ca2d_rule_print (ca2d);   
-    printf ("\n");
-
     // read CA configuration file
     int unsigned cai [siz.y] [siz.x];
     int unsigned cao [siz.y] [siz.x];
