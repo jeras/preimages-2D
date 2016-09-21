@@ -49,16 +49,18 @@
 
 int main (int argc, char **argv) {
     // configuration
-    ca2d_t  ca2d;
-    ca2d_size_t  siz;
+    ca2d_t ca2d;
+    ca2d_size_t siz;
+    char *dir;
     char *filename;
     FILE  file;
 
-    // read input arguments
+    // check number of input arguments
     if (argc < 8) {
-        fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_Y NEIGHBORHOOD_SIZE_X RULE CA_SIZE_Y CA_SIZE_X ca_state_filename.cas\n", argv[0]);
+        fprintf (stderr, "Usage:\t%s STATES NEIGHBORHOOD_SIZE_Y NEIGHBORHOOD_SIZE_X RULE CA_SIZE_Y CA_SIZE_X ca_state_filename.cas DIRECTION(f/b) STEPS\n", argv[0]);
         return (1);
     }
+    // read input arguments
     ca2d.sts   = strtoul (argv[1], 0, 0);
     ca2d.ngb.y = strtoul (argv[2], 0, 0);
     ca2d.ngb.x = strtoul (argv[3], 0, 0);
@@ -66,6 +68,7 @@ int main (int argc, char **argv) {
     siz.y = strtoul (argv[5], 0, 0);
     siz.x = strtoul (argv[6], 0, 0);
     filename = argv[7];
+    dir = argv[8];
 
     // update ca2d structure
     ca2d_update (&ca2d);
@@ -73,72 +76,19 @@ int main (int argc, char **argv) {
 
     // read CA configuration file
     int unsigned cai [siz.y] [siz.x];
-    int unsigned cao [siz.y] [siz.x];
     ca2d_read (filename, siz, cai);
     ca2d_print (siz, cai);
     printf ("\n");
 
-    // calculate network
-    mpz_t cnt [2];
-    ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
-    siz_pre.a = siz_pre.y * siz_pre.x;
-    int unsigned (* list) [siz_pre.y] [siz_pre.x];
-    ca2d_network (ca2d, siz, cai, cnt, &list);
+    if (dir[0] == 'f') {
+        ca2d_size_t siz_fwd = {siz.y-ca2d.ver.y, siz.x-ca2d.ver.x};
+        int unsigned cao [siz_fwd.y] [siz_fwd.x];
 
-    // calculate preimage from network
-    int status;
-    int unsigned preimage [siz_pre.y] [siz_pre.x];
-
-//    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-//        printf ("preimage i=%u:  ", i);
-//        ca2d_print (siz_pre, list[i]);
-//        printf ("\n");
-//    }
-    for (int unsigned d=0; d<2; d++) {
-        gmp_printf ("cnt [%u] = %Zi\n", d, cnt [d]);
+        printf ("FORWARD:\n");
+        ca2d_forward (ca2d, siz, cai, cao);
+        ca2d_print (siz_fwd, cao);
+    } else {
     }
-    printf("&list @ %p\n", &list);
-    printf("list @ %p\n", list);
-    printf("(*list) @ %p\n", (*list));
-//    printf("%d", list);
-    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage i=%u:  ", i);
-        ca2d_print (siz_pre, list[i]);
-        printf ("\n");
-    }
-
-//    printf ("PREIMAGE:\n");
-//    ca2d_print (siz_pre, preimage);
-//    printf ("\n");
-//
-//    printf ("FORWARD:\n");
-//    ca2d_forward (ca2d, siz_pre, preimage, cao);
-//    ca2d_print (siz, cao);
-//
-//    printf ("COMPARE: ");
-//    status = ca2d_lattice_compare (siz, cai, cao);
-//    if (status) {
-//        printf ("FAILURE\n");
-//    } else {
-//        printf ("SUCCESS\n");
-//    }
-//
-//
-////    // get al preimages using bute force
-////    printf ("BRUTE FORCE:\n");
-////    int num = 0;
-////    for (int unsigned p=0; p<pow(ca2d.sts,siz_pre.y*siz_pre.x); p++) {
-////        ca2d_array_from_ui (ca2d.sts, siz_pre, preimage, p);
-////        ca2d_forward (ca2d, siz_pre, preimage, cao);
-////        status = ca2d_lattice_compare (siz, cai, cao);
-////        if (status) {
-////        } else {
-////            printf ("PREIMAGE num = %u\n", num);
-////            ca2d_print (siz_pre, preimage);
-////            printf ("\n");
-////            num++;
-////        }
-////    }
 
     return (0);
 }

@@ -70,7 +70,7 @@ int ca2d_update (ca2d_t *ca2d) {
     // rule table
     ca2d_rule_table (ca2d);
 
-    ca2d_bprint (*ca2d);
+//    ca2d_bprint (*ca2d);
     return (0);
 }
 
