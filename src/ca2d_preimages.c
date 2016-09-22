@@ -98,25 +98,20 @@ int main (int argc, char **argv) {
         printf ("preimage i=%u:  ", i);
         ca2d_print (siz_pre, list[i]);
         printf ("\n");
+
+        printf ("FORWARD:\n");
+        ca2d_forward (ca2d, siz_pre, list[i], cao);
+        ca2d_print (siz, cao);
+
+        printf ("COMPARE: ");
+        status = ca2d_lattice_compare (siz, cai, cao);
+        if (status) {
+            printf ("FAILURE\n");
+        } else {
+            printf ("SUCCESS\n");
+        }
     }
 
-//    printf ("PREIMAGE:\n");
-//    ca2d_print (siz_pre, preimage);
-//    printf ("\n");
-//
-//    printf ("FORWARD:\n");
-//    ca2d_forward (ca2d, siz_pre, preimage, cao);
-//    ca2d_print (siz, cao);
-//
-//    printf ("COMPARE: ");
-//    status = ca2d_lattice_compare (siz, cai, cao);
-//    if (status) {
-//        printf ("FAILURE\n");
-//    } else {
-//        printf ("SUCCESS\n");
-//    }
-//
-//
 ////    // get al preimages using bute force
 ////    printf ("BRUTE FORCE:\n");
 ////    int num = 0;
