@@ -468,7 +468,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (*list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]) {
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (** p_list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]) {
     // edge size
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
@@ -602,14 +602,14 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     // allocate memory for preimages
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
     siz_pre.a = siz_pre.y * siz_pre.x;
-    list = (int unsigned (*) [] [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt[0]));
+    *p_list = (int unsigned (*) [] [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt[0]));
     // convert edge list into actual preimage list
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
 //          printf (" preimage [%u]\n", i);
         ca2d_size_t siz_lin0 = (ca2d_size_t) {ca2d.ver.y, siz.x+ca2d.ver.x};
         int unsigned line0 [siz_lin0.y] [siz_lin0.x];
         ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][0]);
-        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, (*list)[i], line0);
+        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, (**p_list)[i], line0);
 //          printf (" y=%u edg=%x -> ", 0, lst[i][0]);
 //          ca2d_array_print (siz_lin0, line0);
 //          printf ("\n");
@@ -618,7 +618,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             int unsigned line [siz_lin.y] [siz_lin.x];
             ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][y+1]);
             ca2d_array_slice   (siz_lin0, (ca2d_size_t) {ca2d.ver.y-1, 0}, siz_lin, line0, line);
-            ca2d_array_fit (siz_pre, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_lin, (*list)[i], line);
+            ca2d_array_fit (siz_pre, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_lin, (**p_list)[i], line);
 //              printf (" y=%u edg=%x -> ", y+1, lst[i][y+1]);
 //              ca2d_array_print (siz_lin, line);
 //              printf ("\n");
@@ -626,16 +626,6 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 //          printf ("\n");
     }
 
-    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage i=%u:  ", i);
-        ca2d_print (siz_pre, (*list)[i]);
-        printf ("\n");
-    }
-
-    printf ("\n");
-    printf("(*list) @ %p\n", (*list));
-    printf("list @ %p\n", list);
-//    printf("%d", list);
     printf ("DEBUG: end of network\n");
     return (0);
 }

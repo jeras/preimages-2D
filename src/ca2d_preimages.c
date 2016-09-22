@@ -82,25 +82,18 @@ int main (int argc, char **argv) {
     mpz_t cnt [2];
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
     siz_pre.a = siz_pre.y * siz_pre.x;
-    int unsigned (* list) [siz_pre.y] [siz_pre.x];
-    ca2d_network (ca2d, siz, cai, cnt, &list);
+    int unsigned (* p_list) [] [siz_pre.y] [siz_pre.x];
+    int unsigned (*   list)    [siz_pre.y] [siz_pre.x];
+    ca2d_network (ca2d, siz, cai, cnt, &p_list);
+    list = (void *)p_list;
 
     // calculate preimage from network
     int status;
     int unsigned preimage [siz_pre.y] [siz_pre.x];
 
-//    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-//        printf ("preimage i=%u:  ", i);
-//        ca2d_print (siz_pre, list[i]);
-//        printf ("\n");
-//    }
     for (int unsigned d=0; d<2; d++) {
         gmp_printf ("cnt [%u] = %Zi\n", d, cnt [d]);
     }
-    printf("&list @ %p\n", &list);
-    printf("list @ %p\n", list);
-    printf("(*list) @ %p\n", (*list));
-//    printf("%d", list);
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
         printf ("preimage i=%u:  ", i);
         ca2d_print (siz_pre, list[i]);
