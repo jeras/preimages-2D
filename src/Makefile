@@ -8,3 +8,6 @@ CC = clang
 all: $(SOURCES) $(HEADERS)
 	$(CC) -o ca2d_preimages ca2d_preimages.c $(SOURCES) $(CFLAGS)
 	$(CC) -o ca2d           ca2d.c           $(SOURCES) $(CFLAGS)
+
+test: test.c
+	$(CC) -o test test.c -g -std=c99

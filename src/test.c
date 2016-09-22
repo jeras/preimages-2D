@@ -1,37 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int function (size_t size, size_t *length, int unsigned (*list) [] [size]);
+int function (size_t size, size_t *number, int unsigned (**image) [] [size]);
 
-int function (size_t size, size_t *length, int unsigned (*list) [] [size]) {
-    size_t list_size;
+void init(size_t size, size_t number, unsigned image[number][size]) {
+   for (int l=0; l<number; ++l)
+        for (int s=0; s<size; ++s)
+             image [l] [s] = (l << 16) + s;
+    image [0] [0] = 0xDEADC0DE;
+}
 
-    *length = 9;
-    list_size = (*length) * size;
+int function (size_t size, size_t *number, int unsigned (**p_image) [] [size]) {
+    size_t image_size;
 
-    printf ("INSIDE malloc: length=%zu size=%zu list_size=%zu\n", *length, size, list_size);
-    printf ("@*list=%p\n", *list);
-    printf ("@ list=%p\n",  list);
-    fflush(stdout);
-    list = (int unsigned (*) [] [size]) malloc (sizeof(int unsigned) * list_size);
+    *number = 9;
+    image_size = (*number) * size;
 
-    printf ("INSIDE assign: length=%zu size=%zu\n", *length, size);
-    printf ("@*list=%p\n", *list);
-    printf ("@ list=%p\n",  list);
-    fflush(stdout);
-    for (int unsigned l=0; l<*length; l++) {
-        for (int unsigned s=0; s<size; s++) {
-            (*list) [l] [s] = (l << 16) + s;
-        }
-    }
-    (*list) [0] [0] = 0xDEADC0DE;
+    printf ("INSIDE malloc: number=%zu size=%zu image_size=%zu\n", *number, size, image_size); fflush(stdout);
+    *p_image = (int unsigned (*) [] [size]) malloc (sizeof(int unsigned) * image_size);
+    printf ("@&p_image=%p\n", &p_image);
+    printf ("@*p_image=%p\n", *p_image);
+    printf ("@ p_image=%p\n",  p_image);
 
-    printf ("INSIDE print: length=%zu size=%zu\n", *length, size);
-    fflush(stdout);
-    for (int unsigned l=0; l<*length; l++) {
+    printf ("INSIDE assign: number=%zu size=%zu\n", *number, size); fflush(stdout);
+    init(size, *number, **p_image);
+
+    printf ("INSIDE print: number=%zu size=%zu\n", *number, size); fflush(stdout);
+    for (int unsigned l=0; l<*number; l++) {
         printf ("l=%u:", l);
         for (int unsigned s=0; s<size; s++) {
-            printf (" %08x", (*list) [l] [s]);
+//            printf (" %08x", (*p_image) [l] [s]);
         }
         printf ("\n");
     }
@@ -41,34 +39,30 @@ int function (size_t size, size_t *length, int unsigned (*list) [] [size]) {
 
 int main (int argc, char **argv) {
     size_t size;
-    size_t length;
+    size_t number;
 
     size = 5;
-    int unsigned (* list) [size];
+    int unsigned (* p_image)[][size];
 
-    printf ("TEST:\n");
-    printf ("@&list=%p\n", &list);
-    printf ("@*list=%p\n", *list);
-    printf ("@ list=%p\n",  list);
+    printf ("TEST:\n"); fflush(stdout);
+
+    function (size, &number, &p_image);
+
     fflush(stdout);
+    unsigned (*image)[size] = (void *)p_image;
+    printf ("@&p_image=%p\n", &p_image);
+    printf ("@*p_image=%p\n", *p_image);
+    printf ("@ p_image=%p\n",  p_image);
+    printf ("OUTSIDE print: number=%zu size=%zu\n", number, size); fflush(stdout);
+    for (int unsigned l=0; l<number; l++) {
+        printf ("l=%u:", l);
+        for (int unsigned s=0; s<size; s++) {
+            printf (" %08x", image [l] [s]);
+        }
+        printf ("\n");
+    }
 
-    function (size, &length, &list);
-
-    printf ("@&list=%p\n", &list);
-    printf ("@*list=%p\n", *list);
-    printf (" *list=%u\n", *list);
-    printf ("@ list=%p\n",  list);
-    printf ("  list=%u\n",  list);
-    fflush(stdout);
-//    printf ("OUTSIDE print: length=%zu size=%zu\n", length, size);
-//    fflush(stdout);
-//    for (int unsigned l=0; l<length; l++) {
-//        printf ("l=%u:", l);
-//        for (int unsigned s=0; s<size; s++) {
-//            printf (" %08x", (*list) [l] [s]);
-//        }
-//        printf ("\n");
-//    }
+//    free(image);
 
     return (0);
 }
