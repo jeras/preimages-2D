@@ -94,8 +94,9 @@ int main (int argc, char **argv) {
     for (int unsigned d=0; d<2; d++) {
         gmp_printf ("cnt [%u] = %Zi\n", d, cnt [d]);
     }
+    int unsigned error = 0;
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage i=%u:  ", i);
+        printf ("preimage i=%u/%lu:  ", i, mpz_get_ui(cnt[0]));
         ca2d_print (siz_pre, list[i]);
         printf ("\n");
 
@@ -107,10 +108,28 @@ int main (int argc, char **argv) {
         status = ca2d_lattice_compare (siz, cai, cao);
         if (status) {
             printf ("FAILURE\n");
+            error++;
         } else {
             printf ("SUCCESS\n");
         }
     }
+    printf ("There were %u errors.\n", error);
+
+    // buble sort check for duplicates
+    error = 0;
+    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
+        for (int unsigned j=i+1; j<mpz_get_ui(cnt[0]); j++) {
+            status = ca2d_lattice_compare (siz_pre, list[i], list[j]);
+            if (status) {
+//                printf ("SUCCESS\n");
+            } else {
+                printf ("FAILURE i=%u and j=%u are same\n", i, j);
+                error++;
+            }
+        }
+    }
+    printf ("There were %u duplicates.\n", error);
+
 
 ////    // get al preimages using bute force
 ////    printf ("BRUTE FORCE:\n");

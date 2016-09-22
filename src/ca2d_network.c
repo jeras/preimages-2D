@@ -209,11 +209,11 @@ int ca2d_network_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [ca2d.ovl.y.n] [
         for (int unsigned d=0; d<2; d++) {
             // neighborhood array is split into overlay and reminder arrays
             if (!d) {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.ovl.x, ngb_a, ovl_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.ovl.x.x, 0}, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.ovl.x.x}, ca2d.rem.x, ngb_a, rem_ax);
             } else {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.rem.x, ngb_a, rem_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.rem.x.x, 0}, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.rem.x.x}, ca2d.ovl.x, ngb_a, ovl_ax);
             }
             ca2d_array_to_ui (ca2d.sts, ca2d.ovl.x, ovl_ax, &ovl_x);
             ca2d_array_to_ui (ca2d.sts, ca2d.rem.x, rem_ax, &rem_x);
