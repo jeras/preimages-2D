@@ -29,7 +29,7 @@ int function (size_t size, size_t *number, int unsigned (**p_image) [] [size]) {
     for (int unsigned l=0; l<*number; l++) {
         printf ("l=%u:", l);
         for (int unsigned s=0; s<size; s++) {
-//            printf (" %08x", (*p_image) [l] [s]);
+            printf (" %08x", (**p_image) [l] [s]);
         }
         printf ("\n");
     }
