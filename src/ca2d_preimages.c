@@ -82,48 +82,55 @@ int main (int argc, char **argv) {
     mpz_t cnt [2];
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
     siz_pre.a = siz_pre.y * siz_pre.x;
-    int unsigned (* list) [siz_pre.y] [siz_pre.x];
-    ca2d_network (ca2d, siz, cai, cnt, &list);
+    int unsigned (* p_list) [] [siz_pre.y] [siz_pre.x];
+    int unsigned (*   list)    [siz_pre.y] [siz_pre.x];
+    ca2d_network (ca2d, siz, cai, cnt, &p_list);
+    list = (void *)p_list;
 
     // calculate preimage from network
     int status;
     int unsigned preimage [siz_pre.y] [siz_pre.x];
 
-//    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-//        printf ("preimage i=%u:  ", i);
-//        ca2d_print (siz_pre, list[i]);
-//        printf ("\n");
-//    }
     for (int unsigned d=0; d<2; d++) {
         gmp_printf ("cnt [%u] = %Zi\n", d, cnt [d]);
     }
-    printf("&list @ %p\n", &list);
-    printf("list @ %p\n", list);
-    printf("(*list) @ %p\n", (*list));
-//    printf("%d", list);
+    int unsigned error = 0;
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage i=%u:  ", i);
+        printf ("preimage i=%u/%lu:  ", i, mpz_get_ui(cnt[0]));
         ca2d_print (siz_pre, list[i]);
         printf ("\n");
-    }
 
-//    printf ("PREIMAGE:\n");
-//    ca2d_print (siz_pre, preimage);
-//    printf ("\n");
-//
-//    printf ("FORWARD:\n");
-//    ca2d_forward (ca2d, siz_pre, preimage, cao);
-//    ca2d_print (siz, cao);
-//
-//    printf ("COMPARE: ");
-//    status = ca2d_lattice_compare (siz, cai, cao);
-//    if (status) {
-//        printf ("FAILURE\n");
-//    } else {
-//        printf ("SUCCESS\n");
-//    }
-//
-//
+        printf ("FORWARD:\n");
+        ca2d_forward (ca2d, siz_pre, list[i], cao);
+        ca2d_print (siz, cao);
+
+        printf ("COMPARE: ");
+        status = ca2d_lattice_compare (siz, cai, cao);
+        if (status) {
+            printf ("FAILURE\n");
+            error++;
+        } else {
+            printf ("SUCCESS\n");
+        }
+    }
+    printf ("There were %u errors.\n", error);
+
+    // buble sort check for duplicates
+    error = 0;
+    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
+        for (int unsigned j=i+1; j<mpz_get_ui(cnt[0]); j++) {
+            status = ca2d_lattice_compare (siz_pre, list[i], list[j]);
+            if (status) {
+//                printf ("SUCCESS\n");
+            } else {
+                printf ("FAILURE i=%u and j=%u are same\n", i, j);
+                error++;
+            }
+        }
+    }
+    printf ("There were %u duplicates.\n", error);
+
+
 ////    // get al preimages using bute force
 ////    printf ("BRUTE FORCE:\n");
 ////    int num = 0;

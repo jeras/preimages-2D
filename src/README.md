@@ -1,5 +1,5 @@
 ```
-./ca2d_preimages 2 2 2 27030 8 8 test.cas
+./ca2d_preimages 2 2 2 0x6996 8 8 test.cas
 ```
 
 ```

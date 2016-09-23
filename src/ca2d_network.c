@@ -209,11 +209,11 @@ int ca2d_network_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [ca2d.ovl.y.n] [
         for (int unsigned d=0; d<2; d++) {
             // neighborhood array is split into overlay and reminder arrays
             if (!d) {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.ovl.x, ngb_a, ovl_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.ovl.x.x, 0}, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.ovl.x.x}, ca2d.rem.x, ngb_a, rem_ax);
             } else {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.rem.x, ngb_a, rem_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.rem.x.x, 0}, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.rem.x.x}, ca2d.ovl.x, ngb_a, ovl_ax);
             }
             ca2d_array_to_ui (ca2d.sts, ca2d.ovl.x, ovl_ax, &ovl_x);
             ca2d_array_to_ui (ca2d.sts, ca2d.rem.x, rem_ax, &rem_x);
@@ -288,7 +288,7 @@ int ca2d_network_o2ex (ca2d_t ca2d, size_t siz, int unsigned *e, int unsigned o 
     int unsigned ae [se.y] [se.x];
     int unsigned ao [so.y] [so.x];
     int unsigned ar [sr.y] [sr.x];
-    printf ("DEBUG: after mpz_add");
+//    printf ("DEBUG: after mpz_add");
     // set first overlap
     ca2d_array_from_ui (ca2d.sts, so, ao, o[0]);
     ca2d_array_fit (se, (ca2d_size_t) {0, 0}, so, ae, ao);
@@ -315,7 +315,7 @@ static int ca1d_network_print (ca2d_t ca2d, size_t siz, int unsigned net [siz] [
 }
 
 static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int unsigned dy, int unsigned edg_i, mpz_t edg_w, int unsigned *edg_n, mpz_t edg_o [(size_t) pow (ca2d.sts, (ca2d.ngb.y-1)*((ca2d.ngb.x-1)+siz))]) {
-    printf ("DEBUG: start ca1d_network\n");
+//    printf ("DEBUG: start ca1d_network\n");
     fflush(stdout);
 
     // tables
@@ -324,10 +324,10 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     int unsigned o2n_y [2] [ca2d.ovl.y.n] [ca2d.rem.y.n];
     int unsigned o2n_x [2] [ca2d.ovl.x.n] [ca2d.rem.x.n];
     ca2d_network_table_n2o (ca2d, n2o_y, n2o_x);
-    printf ("DEBUG: n2o table creation\n");
+//    printf ("DEBUG: n2o table creation\n");
     fflush(stdout);
     ca2d_network_table_o2n (ca2d, o2n_y, o2n_x);
-    printf ("DEBUG: o2n table creation\n");
+//    printf ("DEBUG: o2n table creation\n");
     fflush(stdout);
 //    ca2d_network_table_n2o_print (ca2d, n2o_y, n2o_x);
 //    ca2d_network_table_o2n_print (ca2d, o2n_y, o2n_x);
@@ -335,7 +335,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
     // memory allocation for preimage network
     int unsigned net [siz] [ca2d.ovl.y.n];
 
-    printf ("DEBUG: before edge conversion\n");
+//    printf ("DEBUG: before edge conversion\n");
     fflush(stdout);
     // convert input edge into array of overlaps
     int unsigned ovl_i [siz];
@@ -375,7 +375,7 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
         }
 //        printf ("\n");
     }
-    printf ("DEBUG: after edge is applied\n");
+//    printf ("DEBUG: after edge is applied\n");
     fflush(stdout);
 //    ca1d_network_print (ca2d, siz, net);
 
@@ -420,16 +420,16 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
             p++;
         }
     }
-    printf ("DEBUG: edg_n = %u\n", *edg_n);
+//    printf ("DEBUG: edg_n = %u\n", *edg_n);
     // list 1D network preimages
     for (int x=siz-2; x>=0; x--) {
         int unsigned p = 0;
         while (p < *edg_n) {
             int unsigned ovl = lst [p] [x+1];
-            printf ("DEBUG: p=%u x=%u, ovl=%x\n", p, x+1, ovl);
+//            printf ("DEBUG: p=%u x=%u, ovl=%x\n", p, x+1, ovl);
             for (int unsigned shf=0; shf<ca2d.shf.y.n; shf++) {
                 int unsigned o = v2o_y[0][ovl][shf];
-                printf ("  DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
+//                printf ("  DEBUG: p=%u x=%u, o=%x net[x][o]=%u\n", p, x, o, net[x][o]);
                 for (int unsigned i=0; i<net[x][o]; i++) {
                     lst [p] [x] = o;
                     p++;
@@ -437,38 +437,38 @@ static int ca1d_network (ca2d_t ca2d, size_t siz, int unsigned ca [siz], int uns
             }
         }
     }
-    // print preimages
-    printf ("DEBUG: print preimages\n");
-    printf ("DEBUG: edg_n = %u\n", *edg_n);
-    for (int unsigned i=0; i<*edg_n; i++) {
-        printf ("DEBUG: edg[%u] =", i);
-        for (int x=0; x<siz; x++) {
-            printf (" %x", lst [i] [x]);
-        }
-        printf ("\n");
-        printf ("DEBUG: end %u\n", i);
-    }
-    printf ("DEBUG: preimages printed\n");
-    fflush(stdout);
+//    // print preimages
+//    printf ("DEBUG: print preimages\n");
+//    printf ("DEBUG: edg_n = %u\n", *edg_n);
+//    for (int unsigned i=0; i<*edg_n; i++) {
+//        printf ("DEBUG: edg[%u] =", i);
+//        for (int x=0; x<siz; x++) {
+//            printf (" %x", lst [i] [x]);
+//        }
+//        printf ("\n");
+//        printf ("DEBUG: end %u\n", i);
+//    }
+//    printf ("DEBUG: preimages printed\n");
+//    fflush(stdout);
     
     // put preimages into edge list
     for (int unsigned i=0; i<*edg_n; i++) {
         int unsigned edg;
-    printf ("DEBUG: before o2ex\n");
-    fflush(stdout);
+//    printf ("DEBUG: before o2ex\n");
+//    fflush(stdout);
         ca2d_network_o2ex (ca2d, siz, &edg, lst [i]);
-    printf ("DEBUG: after o2ex\n");
-    fflush(stdout);
+//    printf ("DEBUG: after o2ex\n");
+//    fflush(stdout);
         mpz_add (edg_o [edg], edg_o [edg], edg_w);
     }
 
-    printf ("DEBUG: after o2ex loop\n");
-    fflush(stdout);
+//    printf ("DEBUG: after o2ex loop\n");
+//    fflush(stdout);
 //    printf ("\n");
     return (0);
 }
 
-int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (*list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]) {
+int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (** p_list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]) {
     // edge size
     const int unsigned edg_x  = pow (ca2d.sts,  (ca2d.ngb.y-1)       *((ca2d.ngb.x-1)+siz.x));
     const int unsigned edg_y  = pow (ca2d.sts, ((ca2d.ngb.y-1)+siz.y)* (ca2d.ngb.x-1)       );
@@ -495,22 +495,22 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     }
     // compute network weights in both directions
     for (int y=0; y<siz.y; y++) {
-        printf ("DEBUG: compute network y=%u/%u\n", y, siz.y);
+//        printf ("DEBUG: compute network y=%u/%u\n", y, siz.y);
         fflush(stdout);
         // loop over all edges
         for (int unsigned edg=0; edg<edg_x; edg++) {
             // only process edge if it's weight is not zero
-            printf ("  DEBUG: start d=0 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
+//            printf ("  DEBUG: start d=0 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
             if (mpz_sgn (net [0] [      y] [edg]) > 0) {
                 ca1d_network (ca2d, siz.x, ca [        y], 0, edg, net [0] [      y] [edg], &edg_n, net [0] [      (y+1)]);
             }
-            printf ("  DEBUG: end   d=0 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
+//            printf ("  DEBUG: end   d=0 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
             fflush(stdout);
-            printf ("  DEBUG: start d=1 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
+//            printf ("  DEBUG: start d=1 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
             if (mpz_sgn (net [1] [siz.y-y] [edg]) > 0) {
                 ca1d_network (ca2d, siz.x, ca [siz.y-1-y], 1, edg, net [1] [siz.y-y] [edg], &edg_n, net [1] [siz.y-(y+1)]);
             }
-            printf ("  DEBUG: end   d=1 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
+//            printf ("  DEBUG: end   d=1 y=%u/%u edg=%u/%u\n", y, siz.y, edg, edg_x);
             fflush(stdout);
         }
     }
@@ -602,14 +602,14 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
     // allocate memory for preimages
     ca2d_size_t siz_pre = {siz.y+ca2d.ver.y, siz.x+ca2d.ver.x};
     siz_pre.a = siz_pre.y * siz_pre.x;
-    list = (int unsigned (*) [] [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt[0]));
+    *p_list = (int unsigned (*) [] [siz_pre.y] [siz_pre.x]) malloc (sizeof(int unsigned) * siz_pre.a * mpz_get_ui(cnt[0]));
     // convert edge list into actual preimage list
     for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
 //          printf (" preimage [%u]\n", i);
         ca2d_size_t siz_lin0 = (ca2d_size_t) {ca2d.ver.y, siz.x+ca2d.ver.x};
         int unsigned line0 [siz_lin0.y] [siz_lin0.x];
         ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][0]);
-        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, (*list)[i], line0);
+        ca2d_array_fit (siz_pre, (ca2d_size_t) {0, 0}, siz_lin0, (**p_list)[i], line0);
 //          printf (" y=%u edg=%x -> ", 0, lst[i][0]);
 //          ca2d_array_print (siz_lin0, line0);
 //          printf ("\n");
@@ -618,7 +618,7 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
             int unsigned line [siz_lin.y] [siz_lin.x];
             ca2d_array_from_ui (ca2d.sts, siz_lin0, line0, lst[i][y+1]);
             ca2d_array_slice   (siz_lin0, (ca2d_size_t) {ca2d.ver.y-1, 0}, siz_lin, line0, line);
-            ca2d_array_fit (siz_pre, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_lin, (*list)[i], line);
+            ca2d_array_fit (siz_pre, (ca2d_size_t) {y+ca2d.ver.y, 0}, siz_lin, (**p_list)[i], line);
 //              printf (" y=%u edg=%x -> ", y+1, lst[i][y+1]);
 //              ca2d_array_print (siz_lin, line);
 //              printf ("\n");
@@ -626,16 +626,6 @@ int ca2d_network (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x],
 //          printf ("\n");
     }
 
-    for (int unsigned i=0; i<mpz_get_ui(cnt[0]); i++) {
-        printf ("preimage i=%u:  ", i);
-        ca2d_print (siz_pre, (*list)[i]);
-        printf ("\n");
-    }
-
-    printf ("\n");
-    printf("(*list) @ %p\n", (*list));
-    printf("list @ %p\n", list);
-//    printf("%d", list);
     printf ("DEBUG: end of network\n");
     return (0);
 }
