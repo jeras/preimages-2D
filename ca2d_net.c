@@ -139,11 +139,11 @@ int ca2d_net_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [ca2d.ovl.y.n] [ca2d
         for (int unsigned d=0; d<2; d++) {
             // neighborhood array is split into overlay and reminder arrays
             if (!d) {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.ovl.y, ngb_a, ovl_ay);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.ovl.y.y, 0}, ca2d.rem.y, ngb_a, rem_ay);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.ovl.y, ngb_a, ovl_ay);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {ca2d.ovl.y.y, 0}, ca2d.rem.y, ngb_a, rem_ay);
             } else {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.rem.y, ngb_a, rem_ay);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {ca2d.rem.y.y, 0}, ca2d.ovl.y, ngb_a, ovl_ay);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0           , 0}, ca2d.rem.y, ngb_a, rem_ay);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {ca2d.rem.y.y, 0}, ca2d.ovl.y, ngb_a, ovl_ay);
             }
             // overlay and reminder arrays are converted into integers
             ca2d_array_to_ui (ca2d.sts, ca2d.ovl.y, ovl_ay, &ovl_y);
@@ -154,11 +154,11 @@ int ca2d_net_table_o2n (ca2d_t ca2d, int unsigned o2n_y [2] [ca2d.ovl.y.n] [ca2d
         for (int unsigned d=0; d<2; d++) {
             // neighborhood array is split into overlay and reminder arrays
             if (!d) {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.ovl.x, ngb_a, ovl_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.ovl.x.x}, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0, ca2d.ovl.x.x}, ca2d.rem.x, ngb_a, rem_ax);
             } else {
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.rem.x, ngb_a, rem_ax);
-                ca2d_array_slice (ca2d.ngb, (ca2d_size_t) {0, ca2d.rem.x.x}, ca2d.ovl.x, ngb_a, ovl_ax);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0, 0           }, ca2d.rem.x, ngb_a, rem_ax);
+                ca2d_array_slice(ca2d.ngb, (ca2d_size_t) {0, ca2d.rem.x.x}, ca2d.ovl.x, ngb_a, ovl_ax);
             }
             ca2d_array_to_ui (ca2d.sts, ca2d.ovl.x, ovl_ax, &ovl_x);
             ca2d_array_to_ui (ca2d.sts, ca2d.rem.x, rem_ax, &rem_x);
@@ -344,10 +344,10 @@ int ca2d_net (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz
         for (int unsigned edg=0; edg<edg_x; edg++) {
             // only process edge if it's weight is not zero
             if (mpz_sgn (net [0] [      y] [edg]) > 0) {
-                ca1d_net (ca2d, siz.x, ca [        y], 0, edg, net [0] [      y] [edg], &edg_n, net [0] [      (y+1)]);
+                ca1d_net(ca2d, siz.x, ca [        y], 0, edg, net [0] [      y] [edg], &edg_n, net [0] [      (y+1)]);
             }
             if (mpz_sgn (net [1] [siz.y-y] [edg]) > 0) {
-                ca1d_net (ca2d, siz.x, ca [siz.y-1-y], 1, edg, net [1] [siz.y-y] [edg], &edg_n, net [1] [siz.y-(y+1)]);
+                ca1d_net(ca2d, siz.x, ca [siz.y-1-y], 1, edg, net [1] [siz.y-y] [edg], &edg_n, net [1] [siz.y-(y+1)]);
             }
         }
     }
