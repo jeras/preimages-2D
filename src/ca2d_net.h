@@ -34,7 +34,7 @@
 // CA preimage network
 ////////////////////////////////////////////////////////////////////////////////
 
-int ca2d_network_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [siz.x] [ca2d.ngb.n]);
-int ca2d_network       (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (** p_list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]);
+int ca2d_net_print (ca2d_t ca2d, ca2d_size_t siz, int unsigned res [siz.y] [siz.x] [ca2d.ngb.n]);
+int ca2d_net       (ca2d_t ca2d, ca2d_size_t siz, int unsigned ca [siz.y] [siz.x], mpz_t cnt [2], int unsigned (** p_list) [] [siz.y+ca2d.ver.y] [siz.x+ca2d.ver.x]);
 
 #endif

@@ -35,7 +35,7 @@
 #include "ca2d.h"
 #include "ca2d_rule.h"
 #include "ca2d_array.h"
-#include "ca2d_configuration.h"
+#include "ca2d_cfg.h"
 
 int ca2d_update (ca2d_t *ca2d) {
     // overlay sizes
